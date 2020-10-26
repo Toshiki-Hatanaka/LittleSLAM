@@ -1,0 +1,3 @@
+cmake ..
+make
+./LittleSLAM ../../dataset/corridor.lsc

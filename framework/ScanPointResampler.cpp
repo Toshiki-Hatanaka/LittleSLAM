@@ -49,7 +49,7 @@ void ScanPointResampler::resamplePoints(Scan2D *scan) {
 
   scan->setLps(newLps);
 
-  printf("lps.size=%lu, newLps.size=%lu\n", lps.size(), newLps.size());    // 確認用
+  //printf("lps.size=%lu, newLps.size=%lu\n", lps.size(), newLps.size());    // 確認用
 }
 
 bool ScanPointResampler::findInterpolatePoint(const LPoint2D &cp, const LPoint2D &pp, LPoint2D &np, bool &inserted) {

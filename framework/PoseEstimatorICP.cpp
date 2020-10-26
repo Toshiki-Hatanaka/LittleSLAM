@@ -57,16 +57,16 @@ double PoseEstimatorICP::estimatePose(Pose2D &initPose, Pose2D &estPose){
 
   estPose = poseMin;
 
-  printf("finalError=%g, pnrate=%g\n", evmin, pnrate);
-  printf("estPose:  tx=%g, ty=%g, th=%g\n", pose.tx, pose.ty, pose.th);      // 確認用
+  //printf("finalError=%g, pnrate=%g\n", evmin, pnrate);
+  //printf("estPose:  tx=%g, ty=%g, th=%g\n", pose.tx, pose.ty, pose.th);      // 確認用
 
   double t1 = 1000*tim.elapsed();
-  printf("PoseEstimatorICP: t1=%g\n", t1);                 // 処理時間
+  //printf("PoseEstimatorICP: t1=%g\n", t1);                 // 処理時間
 
   if (evmin < HUGE_VAL)
     totalError += evmin;                                   // 誤差合計
   totalTime += t1;                                         // 処理時間合計
-  printf("totalError=%g, totalTime=%g\n", totalError, totalTime);    // 確認用
+  //printf("totalError=%g, totalTime=%g\n", totalError, totalTime);    // 確認用
 
   return(evmin);
 }

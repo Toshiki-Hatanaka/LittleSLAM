@@ -59,7 +59,7 @@ void SlamLauncher::run() {
     totalTimeDraw += (t2-t1);              // 描画時間の合計
     totalTimeRead += (t3-t2);              // ロード時間の合計
 
-    printf("---- SlamLauncher: cnt=%lu ends ----\n", cnt);
+    //printf("---- SlamLauncher: cnt=%lu ends ----\n", cnt);
   }
   sreader.closeScanFile();
 

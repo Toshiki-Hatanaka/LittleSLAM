@@ -116,11 +116,11 @@ void CovarianceCalculator::calMotionCovarianceSimple(const Pose2D &motion, doubl
   cov = kk*C1;
 
   // 確認用
-  printf("calMotionCovarianceSimple\n");
-  printf("vt=%g, wt=%g\n", vt, wt);
+  //printf("calMotionCovarianceSimple\n");
+  //printf("vt=%g, wt=%g\n", vt, wt);
   double vals[2], vec1[2], vec2[2];
   calEigen(cov, vals, vec1, vec2);
-  printf("cov : %g %g %g %g %g %g\n", cov(0,0), cov(0,1), cov(0,2), cov(1,1), cov(1,2), cov(2,2));
+  //printf("cov : %g %g %g %g %g %g\n", cov(0,0), cov(0,1), cov(0,2), cov(1,1), cov(1,2), cov(2,2));
 }
 
 ///////// 運動モデルの計算 /////////
@@ -196,8 +196,8 @@ double CovarianceCalculator::calEigen(const Eigen::Matrix3d &cov, double *vals, 
   double ratio = vals[0]/vals[1];
 
   // 確認用
-  printf("Eigen: ratio=%g, val1=%g, val2=%g\n", ratio, vals[0], vals[1]);
-  printf("Eigen: vec1=(%g, %g), ang=%g\n", vec1[0], vec1[1], RAD2DEG(atan2(vec1[1], vec1[0])));
+  //printf("Eigen: ratio=%g, val1=%g, val2=%g\n", ratio, vals[0], vals[1]);
+  //printf("Eigen: vec1=(%g, %g), ang=%g\n", vec1[0], vec1[1], RAD2DEG(atan2(vec1[1], vec1[0])));
 
   return(ratio);
 }

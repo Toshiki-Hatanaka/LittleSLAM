@@ -42,7 +42,7 @@ void MapDrawer::drawTrajectoryGp(const vector<Pose2D> &poses) {
 //////////
 
 void MapDrawer::drawGp(const vector<LPoint2D> &lps, const vector<Pose2D> &poses, bool flush) {
-  printf("drawGp: lps.size=%lu\n", lps.size());     // 点数の確認用
+  //printf("drawGp: lps.size=%lu\n", lps.size());     // 点数の確認用
 
   // gnuplot設定
   fprintf(gp, "set multiplot\n");

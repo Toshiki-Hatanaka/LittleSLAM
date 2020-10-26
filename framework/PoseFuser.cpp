@@ -43,18 +43,18 @@ double PoseFuser::fusePose(Scan2D *curScan, const Pose2D &estPose, const Pose2D 
   totalCov = fusedCov;
 
   // 確認用
-  printf("fusePose\n");
+  //printf("fusePose\n");
   double vals[2], vec1[2], vec2[2];
-  printf("ecov: det=%g, ", ecov.determinant());
+  //printf("ecov: det=%g, ", ecov.determinant());
   cvc.calEigen(ecov, vals, vec1, vec2);
-  printf("mcov: det=%g, ", mcov.determinant());
+  //printf("mcov: det=%g, ", mcov.determinant());
   cvc.calEigen(mcov, vals, vec1, vec2);
-  printf("fusedCov: det=%g, ", fusedCov.determinant());
+  //printf("fusedCov: det=%g, ", fusedCov.determinant());
   cvc.calEigen(fusedCov, vals, vec1, vec2);
 
-  printf("predPose: tx=%g, ty=%g, th=%g\n", predPose.tx, predPose.ty, predPose.th);
-  printf("estPose: tx=%g, ty=%g, th=%g\n", estPose.tx, estPose.ty, estPose.th);
-  printf("fusedPose: tx=%g, ty=%g, th=%g\n", fusedPose.tx, fusedPose.ty, fusedPose.th);
+  //printf("predPose: tx=%g, ty=%g, th=%g\n", predPose.tx, predPose.ty, predPose.th);
+  //printf("estPose: tx=%g, ty=%g, th=%g\n", estPose.tx, estPose.ty, estPose.th);
+  //printf("fusedPose: tx=%g, ty=%g, th=%g\n", fusedPose.tx, fusedPose.ty, fusedPose.th);
 
   return(ratio);
 }
@@ -118,6 +118,6 @@ double PoseFuser::fuse(const Eigen::Vector3d &mu1, const Eigen::Matrix3d &cv1,  
 }
 
 void PoseFuser::printMatrix(const Eigen::Matrix3d &mat) {
-  for (int i=0; i<3; i++) 
-    printf("%g %g %g\n", mat(i,0), mat(i,1), mat(i,2));
+  //for (int i=0; i<3; i++) 
+    //printf("%g %g %g\n", mat(i,0), mat(i,1), mat(i,2));
 }

@@ -31,7 +31,7 @@ vector<LPoint2D> Submap::subsamplePoints(int nthre) {
 
   vector<LPoint2D> sps;
   nntab.makeCellPoints(nthre, sps);      // nthre個以上のセルの代表点をspsに入れる
-  printf("mps.size=%lu, sps.size=%lu\n", mps.size(), sps.size());
+  //printf("mps.size=%lu, sps.size=%lu\n", mps.size(), sps.size());
 
   return(sps);
 }
@@ -96,8 +96,8 @@ void PointCloudMapLP::makeGlobalMap(){
   }
 
   // 以下は確認用
-  printf("curSubmap.atd=%g, atd=%g, sps.size=%lu\n", curSubmap.atdS, atd, sps.size());
-  printf("submaps.size=%lu, globalMap.size=%lu\n", submaps.size(), globalMap.size());
+ // printf("curSubmap.atd=%g, atd=%g, sps.size=%lu\n", curSubmap.atdS, atd, sps.size());
+  //printf("submaps.size=%lu, globalMap.size=%lu\n", submaps.size(), globalMap.size());
 }
 
 // 局所地図の生成
@@ -118,7 +118,7 @@ void PointCloudMapLP::makeLocalMap(){
     localMap.emplace_back(sps[i]);
   }
 
-  printf("localMap.size=%lu\n", localMap.size());   // 確認用
+  //printf("localMap.size=%lu\n", localMap.size());   // 確認用
 }
 
 //////////

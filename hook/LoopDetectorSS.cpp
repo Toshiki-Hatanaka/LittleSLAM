@@ -21,7 +21,7 @@ using namespace std;
 // ループ検出
 // 現在位置curPoseに近く、現在スキャンcurScanに形が一致する場所をロボット軌跡から見つけてポーズアークを張る。
 bool LoopDetectorSS::detectLoop(Scan2D *curScan, Pose2D &curPose, int cnt) {
-  printf("-- detectLoop -- \n");
+  //printf("-- detectLoop -- \n");
 
   // 最も近い部分地図を探す
   double atd = pcmap->atd;                             // 現在の実際の累積走行距離
@@ -52,11 +52,11 @@ bool LoopDetectorSS::detectLoop(Scan2D *curScan, Pose2D &curPose, int cnt) {
     }
   }
 
-  printf("dmin=%g, radius=%g, imin=%lu, jmin=%lu\n", sqrt(dmin), radius, imin, jmin);  // 確認用
+  //printf("dmin=%g, radius=%g, imin=%lu, jmin=%lu\n", sqrt(dmin), radius, imin, jmin);  // 確認用
 
   if (dmin > radius*radius)                            // 前回訪問点までの距離が遠いとループ検出しない
     return(false);
-
+printf("-- LoopDetected -- \n");
   Submap &refSubmap = pcmap->submaps[imin];            // 最も近い部分地図を参照スキャンにする
   const Pose2D &initPose = poses[jmin];
   printf("curPose:  tx=%g, ty=%g, th=%g\n", curPose.tx, curPose.ty, curPose.th);

@@ -51,7 +51,7 @@ void SlamFrontEnd::process(Scan2D &scan) {
       pcmap->setNthre(1);                                // cnt=0のときは地図が小さいのでサンプリング多くする
     else
       pcmap->setNthre(5);
-    pcmap->makeGlobalMap();                              // 点群地図の全体地図を生成
+    pcmap->makeGlobalMap();                             // 点群地図の全体地図を生成
   }
 
   // ループ閉じ込み

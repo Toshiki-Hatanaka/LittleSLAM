@@ -22,6 +22,7 @@
 #include <unistd.h>
 #endif
 
+#include <boost/timer.hpp>
 #include "SensorDataReader.h"
 #include "PointCloudMap.h"
 #include "SlamFrontEnd.h"
@@ -37,10 +38,16 @@ private:
   int startN;                      // 開始スキャン番号
   int drawSkip;                    // 描画間隔
   bool odometryOnly;               // オドメトリによる地図構築か
+
+  size_t cnt = 0;                  // 処理の論理時刻
+  Scan2D scan;
+  bool eof;
+  boost::timer tim;
+  double totalTime=0, totalTimeDraw=0, totalTimeRead=0;
+  
+
   Pose2D ipose;                    // オドメトリ地図構築の補助データ。初期位置の角度を0にする
-
   Pose2D lidarOffset;              // レーザスキャナとロボットの相対位置
-
   SensorDataReader sreader;        // ファイルからのセンサデータ読み込み
   PointCloudMap *pcmap;            // 点群地図
   SlamFrontEnd sfront;             // SLAMフロントエンド
@@ -64,6 +71,9 @@ public:
     odometryOnly = p;
   }
 
+  bool getEof(){
+    return eof;
+  }
 ///////////
 
   void run();
@@ -72,6 +82,9 @@ public:
   bool setFilename(char *filename);
   void skipData(int num);
   void customizeFramework();
+  void setupEC();
+  void runEC();
+
 };
 
 #endif

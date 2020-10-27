@@ -2,4 +2,4 @@ cmake ..
 make
 ./LittleSLAM ../../dataset/corridor.lsc
 
-./LittleSLAM -e 2 ../../dataset/corridor.lsc 0 ../../dataset/hall.lsc 10
+./LittleSLAM -e 2 ../../dataset/corridor.lsc 0 ../../dataset/hall.lsc 0

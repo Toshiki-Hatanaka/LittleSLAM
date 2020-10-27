@@ -32,8 +32,8 @@ void SlamLauncher::run() {
   double totalTime=0, totalTimeDraw=0, totalTimeRead=0;
   Scan2D scan;
   bool eof = sreader.loadScan(cnt, scan);  // ファイルからスキャンを1個読み込む
-  boost::timer tim;
-  while(!eof) {
+
+  while(!eof) { 
     if (odometryOnly) {                      // オドメトリによる地図構築（SLAMより優先）
       if (cnt == 0) {
         ipose = scan.pose;
@@ -67,13 +67,49 @@ void SlamLauncher::run() {
   printf("SlamLauncher finished.\n");
 
   // 処理終了後も描画画面を残すためにsleepで無限ループにする。ctrl-Cで終了。
+  usleep(10000);  
+/*
   while(true) {
 #ifdef _WIN32
     Sleep(1000);                            // WindowsではSleep
 #elif __linux__
-    usleep(1000000);                        // Linuxではusleep
+    usleep(1000);                        // Linuxではusleep
 #endif
   }
+  */
+ return;
+}
+
+void SlamLauncher::setupEC(){
+  mdrawer.initGnuplot();                   // gnuplot初期化
+  mdrawer.setAspectRatio(-0.9);            // x軸とy軸の比（負にすると中身が一定）
+  
+  if (startN > 0){
+    skipData(startN);                      // startNまでデータを読み飛ばす
+  }
+  eof = sreader.loadScan(cnt, scan);  // ファイルからスキャンを1個読み込む
+  totalTime=0, totalTimeDraw=0, totalTimeRead=0;
+}
+
+void SlamLauncher::runEC(){
+
+    sfront.process(scan);                // SLAMによる地図構築
+
+    double t1 = 1000*tim.elapsed();
+
+    if (cnt%drawSkip == 0) {               // drawSkipおきに結果を描画
+      mdrawer.drawMapGp(*pcmap);
+    }
+    double t2 = 1000*tim.elapsed();
+
+    ++cnt;                                 // 論理時刻更新
+    eof = sreader.loadScan(cnt, scan);     // 次のスキャンを読み込む
+
+    double t3 = 1000*tim.elapsed();
+    totalTime = t3;                        // 全体処理時間
+    totalTimeDraw += (t2-t1);              // 描画時間の合計
+    totalTimeRead += (t3-t2);              // ロード時間の合計
+  return;
 }
 
 // 開始からnum個のスキャンまで読み飛ばす
@@ -83,6 +119,26 @@ void SlamLauncher::skipData(int num) {
   for (int i=0; !eof && i<num; i++) {       // num個空読みする
     eof = sreader.loadScan(0, scan);
   }
+}
+
+//////// スキャン読み込み /////////
+
+bool SlamLauncher::setFilename(char *filename) {
+  bool flag = sreader.openScanFile(filename);        // ファイルをオープン
+
+  return(flag);
+}
+
+////////////
+
+void SlamLauncher::customizeFramework() {
+  fcustom.setSlamFrontEnd(&sfront);
+  fcustom.makeFramework();
+//  fcustom.customizeG();                         // 退化の対処をしない
+//  fcustom.customizeH();                         // 退化の対処をする
+  fcustom.customizeI();                           // ループ閉じ込みをする
+
+  pcmap = fcustom.getPointCloudMap();           // customizeの後にやること
 }
 
 ///////// オドメトリのよる地図構築 //////////
@@ -143,22 +199,3 @@ void SlamLauncher::showScans() {
   printf("SlamLauncher finished.\n");
 }
 
-//////// スキャン読み込み /////////
-
-bool SlamLauncher::setFilename(char *filename) {
-  bool flag = sreader.openScanFile(filename);        // ファイルをオープン
-
-  return(flag);
-}
-
-////////////
-
-void SlamLauncher::customizeFramework() {
-  fcustom.setSlamFrontEnd(&sfront);
-  fcustom.makeFramework();
-//  fcustom.customizeG();                         // 退化の対処をしない
-//  fcustom.customizeH();                         // 退化の対処をする
-  fcustom.customizeI();                           // ループ閉じ込みをする
-
-  pcmap = fcustom.getPointCloudMap();           // customizeの後にやること
-}

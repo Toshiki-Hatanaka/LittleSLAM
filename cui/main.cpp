@@ -18,11 +18,10 @@ int main(int argc, char *argv[]) {
   bool scanCheck=false;              // スキャン表示のみか
   bool odometryOnly=false;           // オドメトリによる地図構築か
   bool edgeCloudSLAM=false;
-  char *filename;                    // データファイル名
-  int startN=0;                      // 開始スキャン番号
-
-  char *filenameEC[5];
-  int startNEC[5];
+  char *filename[5];                    // データファイル名
+  int startN[5]={0, 0, 0, 0, 0};        // 開始スキャン番号
+  SlamLauncher sl[5];
+  bool eof[5];
 
   if (argc < 2) {
     printf("Error: too few arguments.\n");
@@ -45,7 +44,7 @@ int main(int argc, char *argv[]) {
         edgeCloudSLAM = true;
       }
     }
-    printf("SlamLauncher: startN=%d, scanCheck=%d, odometryOnly=%d, edgeCloudSLAM=%d\n", startN, scanCheck, odometryOnly, edgeCloudSLAM);
+    printf("SlamLauncher: startN=%d, scanCheck=%d, odometryOnly=%d, edgeCloudSLAM=%d\n", startN[0], scanCheck, odometryOnly, edgeCloudSLAM);
     if (argc == 2) {
       printf("Error: no file name.\n");
       return(1);
@@ -54,31 +53,31 @@ int main(int argc, char *argv[]) {
   }
   if(!edgeCloudSLAM){                  //シングルモード
     if (argc >= idx+1)                 // '-'ある場合idx=2、ない場合idx=1
-      filename = argv[idx];
+      filename[0] = argv[idx];
     if (argc == idx+2)                 // argcがidxより2大きければstartNがある
-      startN = atoi(argv[idx+1]);
+      startN[0] = atoi(argv[idx+1]);
     else if (argc >= idx+2) {
       printf("Error: invalid arguments.\n");
       return(1);
     }
 
-    printf("filename=%s\n", filename);
+    printf("filename=%s\n", filename[0]);
 
     // ファイルを開く
-    SlamLauncher sl;
-    bool flag = sl.setFilename(filename);
+
+    bool flag = sl[0].setFilename(filename[0]);
     if (!flag)
       return(1);
 
-    sl.setStartN(startN);              // 開始スキャン番号の設定
+    sl[0].setStartN(startN[0]);              // 開始スキャン番号の設定
 
     // 処理本体
     if (scanCheck)
-      sl.showScans();
+      sl[0].showScans();
     else {                             // スキャン表示以外はSlamLauncher内で場合分け
-      sl.setOdometryOnly(odometryOnly);
-      sl.customizeFramework();
-      sl.run();
+      sl[0].setOdometryOnly(odometryOnly);
+      sl[0].customizeFramework();
+      sl[0].run();
     }
   }
   // エッジクラウドモード　
@@ -95,21 +94,38 @@ int main(int argc, char *argv[]) {
       return(1);
     }
     idx++;
-    SlamLauncher slEC[5];
+    //各slにファイルとstartNとframeworkをセット
     for(int i = 0; i < edgeNumber; i++){
-      filenameEC[i] = argv[idx];
-      startNEC[i] = atoi(argv[idx + 1]);
-      bool flag = slEC->setFilename(filenameEC[i]);
+      filename[i] = argv[idx];
+      startN[i] = atoi(argv[idx + 1]);
+      bool flag = sl[i].setFilename(filename[i]);
       if(!flag){
         return(1);
       }
-      slEC->setStartN(startNEC[i]);
+      sl[i].setStartN(startN[i]);
+      sl[i].customizeFramework();
+      printf("エッジ%dのfilename=%s, startN=%d\n", i, filename[i], startN[i]);
+      sl[i].setupEC();
+      eof[i] = sl[i].getEof();
       idx += 2;
-      printf("エッジ%dのfilename=%s, startN=%d\n", i, filenameEC[i], startNEC[i]);
     }
+    bool eofAll = false;
+
+    //ただループでsfront.process()と描画を行っているだけ
+    while(!eofAll){
+      for(int i = 0; i < edgeNumber; i++){
+        sl[i].runEC();
+        eof[i] = sl[i].getEof();
+      }
+      eofAll = true;
+      for(int i = 0; i < edgeNumber; i++){
+        if(eof[i] == false){
+          eofAll = false;
+        }
+      }
+    }
+    usleep(10000);  
+    
   }
-  
-
-
   return(0);
 }

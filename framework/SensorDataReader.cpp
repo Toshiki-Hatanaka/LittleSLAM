@@ -71,6 +71,59 @@ bool SensorDataReader::loadLaserScan(size_t cnt, Scan2D &scan) {
 
     return(true);
   }
+  else if(type == "FLASER"){            //データセット
+    scan.setSid(cnt);
+    int sid;
+    inFile >> sid;        // これらは使わない
+    //printf("idは%d, ", sid);
+
+    vector<LPoint2D> lps;
+    int pnum;                            // スキャン点数
+    inFile >> pnum;
+    //printf("点数は%d, ", pnum);
+    lps.reserve(pnum);
+    float nowangle = 0;
+    for (int i=0; i<pnum; i++) {
+      float angle, range;
+      
+      inFile >> range;          // スキャン点の方位と距離
+      angle = nowangle;
+      angle += angleOffset;              // レーザスキャナの方向オフセットを考慮
+      nowangle += 2.0;                  // 次のために角度をセット
+      //printf("角度は%f距離は%f ", angle, range);
+      if (range <= Scan2D::MIN_SCAN_RANGE || range >= Scan2D::MAX_SCAN_RANGE) {
+//      if (range <= Scan2D::MIN_SCAN_RANGE || range >= 3.5) {         // わざと退化を起こしやすく
+        continue;
+      }
+
+      LPoint2D lp;
+      lp.setSid(cnt);                    // スキャン番号はcnt（通し番号）にする
+      lp.calXY(range, angle);            // angle,rangeから点の位置xyを計算
+      lps.emplace_back(lp);
+
+
+    }
+    //printf("\n");
+    scan.setLps(lps);
+
+    // スキャンに対応するオドメトリ情報
+    Pose2D &pose = scan.pose;
+    inFile >> pose.tx >> pose.ty;
+    double th;
+    inFile >> th;
+    pose.setAngle(RAD2DEG(th));          // オドメトリ角度はラジアンなので度にする
+    pose.calRmat();
+    //printf("オドメトリはx = %f, y = %f, θ = %f\n", pose.tx, pose.ty, th);
+
+    // 読み飛ばす
+    float a1, a2, a3, a4;
+    inFile >> a1 >> a2 >> a3 >> a4;
+    string s;
+    inFile >> s;
+    float a5;
+    inFile >> a5;
+    return(true);
+  }
   else {                                 // スキャン以外の場合
     string line;
     getline(inFile, line);               // 読み飛ばす

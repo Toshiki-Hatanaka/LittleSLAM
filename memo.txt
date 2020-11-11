@@ -1,5 +1,7 @@
-cmake ..
-make
-./LittleSLAM ../../dataset/corridor.lsc
+
+./LittleSLAM ../../dataset/sampleDataset/corridor.lsc
+
+./LittleSLAM ../../dataset/wholeDataset/ACES_Building_Whole.lsc
+./LittleSLAM ../../dataset/wholeDataset/Intel_Research_Lab_whole.lsc
 
 ./LittleSLAM -e 2 ../../dataset/corridor.lsc 0 ../../dataset/hall.lsc 0

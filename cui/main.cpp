@@ -52,6 +52,7 @@ int main(int argc, char *argv[]) {
     ++idx;
   }
   if(!edgeCloudSLAM){                  //シングルモード
+    printf("シングルモード開始\n");
     if (argc >= idx+1)                 // '-'ある場合idx=2、ない場合idx=1
       filename[0] = argv[idx];
     if (argc == idx+2)                 // argcがidxより2大きければstartNがある
@@ -83,6 +84,7 @@ int main(int argc, char *argv[]) {
   // エッジクラウドモード　
   // LittleSLAM -w 2 dataset1 startN1 dataset2 startN2 
   else{
+    printf("エッジクラウドモード開始\n");
     int edgeNumber = atoi(argv[idx]); //エッジ端末の数
 
     if(edgeNumber == 0){                           //エッジ数のところの入力エラー

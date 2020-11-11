@@ -32,7 +32,7 @@ private:
   std::ifstream inFile;                 // データファイル
 
 public:
-  SensorDataReader() : angleOffset(180) {
+  SensorDataReader() : angleOffset(0) {
   }
 
   ~SensorDataReader() {

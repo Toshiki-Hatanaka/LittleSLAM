@@ -67,8 +67,7 @@ void SlamLauncher::run() {
   printf("SlamLauncher finished.\n");
 
   // 処理終了後も描画画面を残すためにsleepで無限ループにする。ctrl-Cで終了。
-  usleep(10000);  
-/*
+
   while(true) {
 #ifdef _WIN32
     Sleep(1000);                            // WindowsではSleep
@@ -76,7 +75,6 @@ void SlamLauncher::run() {
     usleep(1000);                        // Linuxではusleep
 #endif
   }
-  */
  return;
 }
 
@@ -161,7 +159,7 @@ void SlamLauncher::mapByOdometry(Scan2D *scan) {
   pcmap->addPoints(glps);
   pcmap->makeGlobalMap();
 
-  printf("Odom pose: tx=%g, ty=%g, th=%g\n", pose.tx, pose.ty, pose.th);
+  //printf("Odom pose: tx=%g, ty=%g, th=%g\n", pose.tx, pose.ty, pose.th);
 }
 
 ////////// スキャン描画 ////////

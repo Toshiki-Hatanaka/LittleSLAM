@@ -133,8 +133,8 @@ void SlamLauncher::customizeFramework() {
   fcustom.setSlamFrontEnd(&sfront);
   fcustom.makeFramework();
 //  fcustom.customizeG();                         // 退化の対処をしない
-//  fcustom.customizeH();                         // 退化の対処をする
-  fcustom.customizeI();                           // ループ閉じ込みをする
+  fcustom.customizeH();                         // 退化の対処をする
+  //fcustom.customizeI();                           // ループ閉じ込みをする
 
   pcmap = fcustom.getPointCloudMap();           // customizeの後にやること
 }

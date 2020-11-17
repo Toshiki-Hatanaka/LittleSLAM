@@ -32,7 +32,7 @@ private:
   std::ifstream inFile;                 // データファイル
 
 public:
-  SensorDataReader() : angleOffset(0) {
+  SensorDataReader() : angleOffset(270) {
   }
 
   ~SensorDataReader() {
@@ -62,6 +62,7 @@ public:
 
   bool loadScan(size_t cnt, Scan2D &scan);
   bool loadLaserScan(size_t cnt, Scan2D &scan);
+  bool loadLaserScanNew(size_t cnt, Scan2D &scan);
 };
 
 #endif

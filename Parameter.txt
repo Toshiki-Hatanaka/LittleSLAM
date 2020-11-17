@@ -1,0 +1,21 @@
+SensorDataReader.cpp
+    ・nowAngle              // 範囲は180度で固定。どっちまわりか
+        ACES_Building: +1.0
+        Intel_Research_Lab: +1.0
+        Freiburg Indoor Building:  +0.5
+SensorDataReader.h
+    ・angleOffset           // LiDarのロボットに対する位相
+        ACES_Building: 270
+        Intel_Research_Lab: 270
+        Freiburg Indoor Building: 270
+NNGridTable.h
+    ・csize, rsize                 // 対象領域をデータによって変更する必要がある
+        ACES_Building: 0.05, 50
+        Freiburg Indoor Building: 0.05, 30
+
+MapDrawer.cpp
+    ・step                  // 描画が重い時大きくする
+    ・
+
+Scan2D.cpp
+    ・MAX_SCAN_RANGE       // レーザーの性能

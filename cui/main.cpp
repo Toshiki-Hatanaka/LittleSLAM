@@ -126,8 +126,14 @@ int main(int argc, char *argv[]) {
         }
       }
     }
-    usleep(10000);  
-    
+    printf("SlamLauncher finished.\n");
+    while(true) {
+      #ifdef _WIN32
+      Sleep(1000);                            // WindowsではSleep
+      #elif __linux__
+        usleep(1000);                        // Linuxではusleep
+    #endif
+    }    
   }
   return(0);
 }

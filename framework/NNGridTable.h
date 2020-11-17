@@ -40,7 +40,7 @@ private:
   std::vector<NNGridCell> table;      // テーブル本体
 
 public:
-  NNGridTable() : csize(0.05), rsize(40){            // セル5cm、対象領域40x2m四方
+  NNGridTable() : csize(0.05), rsize(50){            // セル5cm、対象領域40x2m四方
     tsize = static_cast<int>(rsize/csize);           // テーブルサイズの半分
     size_t w = static_cast<int>(2*tsize+1);          // テーブルサイズ
     table.resize(w*w);                               // 領域確保

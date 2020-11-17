@@ -30,6 +30,10 @@ bool SensorDataReader::loadScan(size_t cnt, Scan2D &scan) {
 }
 
 //////////////
+//スキャン歪みを考慮したもの
+bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
+
+}
 
 // ファイルから項目1個を読む。読んだ項目がスキャンならtrueを返す。
 bool SensorDataReader::loadLaserScan(size_t cnt, Scan2D &scan) {
@@ -75,21 +79,18 @@ bool SensorDataReader::loadLaserScan(size_t cnt, Scan2D &scan) {
     scan.setSid(cnt);
     int sid;
     inFile >> sid;        // これらは使わない
-    //printf("idは%d, ", sid);
+    printf("idは%d\n, ", sid);
 
     vector<LPoint2D> lps;
     int pnum;                            // スキャン点数
     inFile >> pnum;
     //printf("点数は%d, ", pnum);
     lps.reserve(pnum);
-    float nowangle = 0;
     for (int i=0; i<pnum; i++) {
       float angle, range;
       
       inFile >> range;          // スキャン点の方位と距離
-      angle = nowangle;
-      angle += angleOffset;              // レーザスキャナの方向オフセットを考慮
-      nowangle += 2.0;                  // 次のために角度をセット
+      angle = (float)180/(pnum - 1) * i + angleOffset;
       //printf("角度は%f距離は%f ", angle, range);
       if (range <= Scan2D::MIN_SCAN_RANGE || range >= Scan2D::MAX_SCAN_RANGE) {
 //      if (range <= Scan2D::MIN_SCAN_RANGE || range >= 3.5) {         // わざと退化を起こしやすく
@@ -106,6 +107,8 @@ bool SensorDataReader::loadLaserScan(size_t cnt, Scan2D &scan) {
     //printf("\n");
     scan.setLps(lps);
 
+
+
     // スキャンに対応するオドメトリ情報
     Pose2D &pose = scan.pose;
     inFile >> pose.tx >> pose.ty;
@@ -116,12 +119,16 @@ bool SensorDataReader::loadLaserScan(size_t cnt, Scan2D &scan) {
     //printf("オドメトリはx = %f, y = %f, θ = %f\n", pose.tx, pose.ty, th);
 
     // 読み飛ばす
-    float a1, a2, a3, a4;
-    inFile >> a1 >> a2 >> a3 >> a4;
-    string s;
-    inFile >> s;
-    float a5;
-    inFile >> a5;
+    float x1, y1, theta1;
+    inFile >> x1 >> y1 >> theta1;
+    
+    //読み飛ばす
+    float timestamp1;
+    inFile >> timestamp1;
+    string name;
+    inFile >> name;
+    float logTimestamp1;
+    inFile >> logTimestamp1;
     return(true);
   }
   else {                                 // スキャン以外の場合

@@ -74,6 +74,13 @@ struct LPoint2D
     y = range*sin(a);
   }
 
+  // rangeとangleからxyを求める(右手系)
+  void calXYCorrect(double range, double angle, double dx, double dy, double dtheta, int pointIndex, int pnum) {
+    double a = DEG2RAD(angle - (double)dtheta * pointIndex / (pnum - 1));
+    x = range * cos(a) - (double)dx * pointIndex /(pnum - 1);
+    y = range * sin(a) - (double)dy * pointIndex /(pnum - 1);
+  }
+
   // rangeとangleからxyを求める(左手系）
   void calXYi(double range, double angle) {
     double a = DEG2RAD(angle);

@@ -20,7 +20,7 @@ using namespace std;
 bool SensorDataReader::loadScan(size_t cnt, Scan2D &scan) {
   bool isScan=false;
   while (!inFile.eof() && !isScan) {     // スキャンを読むまで続ける
-    isScan = loadLaserScan(cnt, scan);
+    isScan = loadLaserScanNew(cnt, scan);
   }
 
   if (isScan) 
@@ -30,8 +30,96 @@ bool SensorDataReader::loadScan(size_t cnt, Scan2D &scan) {
 }
 
 //////////////
-//スキャン歪みを考慮したもの
+//スキャン歪みを考慮したもの。
 bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
+  if(cnt == 0){
+    //読み飛ばし
+    string ODOM_0, hostname_0; 
+    float x_0, y_0, theta_0, tv_0, rv_0, accel_0, timestamp_0, logTimestamp_0;
+    inFile >> ODOM_0;
+    cout << ODOM_0 << endl;
+    inFile >> x_0 >> y_0 >> theta_0 >> tv_0 >> rv_0 >> accel_0 >> timestamp_0;
+    inFile >> hostname_0;
+    inFile >> logTimestamp_0;
+    cout << x_0 << " " << y_0 << " " << theta_0 << " " << tv_0 << " " << rv_0 << " " << accel_0 << " " << timestamp_0 << " " << hostname_0 << " " << logTimestamp_0 << endl; 
+    printf("最初の読み飛ばしOK\n");
+  }
+  string FLASER;
+  inFile >> FLASER;                      // ファイル内の項目ラベル
+  if(FLASER == "FLASER"){
+    vector<LPoint2D> lps;
+    int pnum;                            // スキャン点数
+    inFile >> pnum;
+    //printf("点数は%d, ", pnum);
+    lps.reserve(pnum);
+    double range_old[500];
+    for (int i=0; i<pnum; i++) {
+    inFile >> range_old[i];
+    }
+    double x_s, y_s, theta_s;             //0番目の点におけるオドメトリ値
+    inFile >> x_s >> y_s >> theta_s;
+
+    //読み飛ばす
+    float odo_x, odo_y, odo_theta, timestamp_s, logTimestamp_s;
+    string hostname_s;
+    inFile >> odo_x >> odo_y >> odo_theta >> timestamp_s;
+    inFile >> hostname_s;
+    inFile >> logTimestamp_s;
+
+    string ODOM;
+    inFile >> ODOM;                      // ファイル内の項目ラベル
+
+    double x_g, y_g, theta_g;
+    inFile >> x_g >> y_g >> theta_g;    //pnum番目の点におけるオドメトリ値
+
+    //読み飛ばす
+    double tv_g, rv_g, accel_g, timestamp_g, logTimestamp_g;
+    string hostname;
+    inFile >> tv_g >> rv_g >> accel_g >> timestamp_g;
+    inFile >> hostname;
+    inFile >> logTimestamp_g;
+
+    //1スキャンの間の移動量
+    double dx, dy, dtheta;
+    dx = x_g - x_s;
+    dy = y_g - y_s;
+    dtheta = theta_g - theta_s;
+
+    for(int i = 0; i < pnum; i++){
+    
+      float range, angle;
+      range = range_old[i];
+      angle = (float)180/(pnum - 1) * i + angleOffset;
+
+      /*
+      angle = (float)i/(pnum - 1) * (180 - d_theta) + angleOffset;
+      range = range_old[i] - (float)i * sqrt(pow(d_x, 2) + pow(d_y, 2)) /(pnum - 1);
+      */
+      if (range <= Scan2D::MIN_SCAN_RANGE || range >= Scan2D::MAX_SCAN_RANGE) {
+        continue;
+      }
+      LPoint2D lp;
+      lp.setSid(cnt);                    // スキャン番号はcnt（通し番号）にする
+      lp.calXYCorrect(range, angle, dx, dy, dtheta, i, pnum);            // angle,rangeから点の位置xyを計算
+      lps.emplace_back(lp);
+    }
+    scan.setLps(lps);
+
+    // スキャンに対応するオドメトリ情報
+    Pose2D &pose = scan.pose;
+    pose.tx = x_s;
+    pose.ty = y_s;
+    pose.setAngle(RAD2DEG(theta_s));          // オドメトリ角度はラジアンなので度にする
+    pose.calRmat();
+
+    return(true);
+  }
+  else{
+    string line;
+    getline(inFile, line);               // 読み飛ばす
+
+    return(false);
+  }
 
 }
 

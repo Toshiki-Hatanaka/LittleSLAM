@@ -59,7 +59,7 @@ void SlamLauncher::run() {
     totalTimeDraw += (t2-t1);              // 描画時間の合計
     totalTimeRead += (t3-t2);              // ロード時間の合計
 
-    //printf("---- SlamLauncher: cnt=%lu ends ----\n", cnt);
+    printf("---- SlamLauncher: cnt=%lu ends ----\n", cnt);
   }
   sreader.closeScanFile();
 
@@ -72,7 +72,7 @@ void SlamLauncher::run() {
 #ifdef _WIN32
     Sleep(1000);                            // WindowsではSleep
 #elif __linux__
-    usleep(1000);                        // Linuxではusleep
+    usleep(100000);                        // Linuxではusleep
 #endif
   }
  return;
@@ -133,8 +133,8 @@ void SlamLauncher::customizeFramework() {
   fcustom.setSlamFrontEnd(&sfront);
   fcustom.makeFramework();
 //  fcustom.customizeG();                         // 退化の対処をしない
-  fcustom.customizeH();                         // 退化の対処をする
-  //fcustom.customizeI();                           // ループ閉じ込みをする
+  //fcustom.customizeH();                         // 退化の対処をする
+  fcustom.customizeI();                           // ループ閉じ込みをする
 
   pcmap = fcustom.getPointCloudMap();           // customizeの後にやること
 }

@@ -113,7 +113,7 @@ public:
   
 //////////
 
-  bool matchScan(Scan2D &scan);
+  bool matchScan(Scan2D &scan, int edgeId);
   void growMap(const Scan2D &scan, const Pose2D &pose);
 
 };

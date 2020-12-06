@@ -1,0 +1,12 @@
+
+./LittleSLAM ../../dataset/sampleDataset/corridor.lsc
+
+./LittleSLAM ../../dataset/wholeDataset/ACES_Building_whole2.lsc
+./LittleSLAM ../../dataset/wholeDataset/Intel_Research_Lab_whole.lsc
+./LittleSLAM ../../dataset/wholeDataset/Freiburg_Indoor_Building_079_whole.lsc
+./LittleSLAM ../../dataset/wholeDataset/MIT_CSAIL_Building_whole.lsc
+./LittleSLAM ../../dataset/wholeDataset/MIT_Killian_Court_whole.lsc
+
+./LittleSLAM -e 2 ../../dataset/corridor.lsc 0 ../../dataset/hall.lsc 0
+
+./LittleSLAM -e 2 ../../dataset/divideDataset/ACES_Building/ACES_Building_divide_0_4000.lsc 0 ../../dataset/divideDataset/ACES_Building/ACES_Building_divide_3501_7373.lsc 0 

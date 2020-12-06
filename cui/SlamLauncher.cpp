@@ -42,7 +42,7 @@ void SlamLauncher::run() {
       mapByOdometry(&scan);
     }
     else 
-      sfront.process(scan);                // SLAMによる地図構築
+      sfront.process(scan, 0);                // SLAMによる地図構築
 
     double t1 = 1000*tim.elapsed();
 
@@ -63,6 +63,10 @@ void SlamLauncher::run() {
   }
   sreader.closeScanFile();
 
+  for(int i = 0; i < pcmap->poses.size(); i++){
+    Pose2D &pose = pcmap->poses[i];
+    printf("スキャン番号: %d, ロボットのxは%f, yは%f, thetaは%f\n", i, pose.tx, pose.ty, pose.th);
+  }
   printf("Elapsed time: mapping=%g, drawing=%g, reading=%g\n", (totalTime-totalTimeDraw-totalTimeRead), totalTimeDraw, totalTimeRead);
   printf("SlamLauncher finished.\n");
 
@@ -78,20 +82,22 @@ void SlamLauncher::run() {
  return;
 }
 
-void SlamLauncher::setupEC(){
+void SlamLauncher::setupEC(int edgeId){
+  this->edgeId = edgeId;
   mdrawer.initGnuplot();                   // gnuplot初期化
   mdrawer.setAspectRatio(-0.9);            // x軸とy軸の比（負にすると中身が一定）
   
   if (startN > 0){
     skipData(startN);                      // startNまでデータを読み飛ばす
   }
+  //cntが0の時だけ、初期値を保存しておく
   eof = sreader.loadScan(cnt, scan);  // ファイルからスキャンを1個読み込む
   totalTime=0, totalTimeDraw=0, totalTimeRead=0;
 }
 
 void SlamLauncher::runEC(){
 
-    sfront.process(scan);                // SLAMによる地図構築
+    sfront.process(scan, edgeId);                // SLAMによる地図構築
 
     double t1 = 1000*tim.elapsed();
 

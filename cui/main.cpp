@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
   char *filename[5];                    // データファイル名
   int startN[5]={0, 0, 0, 0, 0};        // 開始スキャン番号
   SlamLauncher sl[5];
+  MapDrawer mdrawerWorld;
   bool eof[5];
 
   if (argc < 2) {
@@ -107,24 +108,38 @@ int main(int argc, char *argv[]) {
       sl[i].setStartN(startN[i]);
       sl[i].customizeFramework();
       printf("エッジ%dのfilename=%s, startN=%d\n", i, filename[i], startN[i]);
-      sl[i].setupEC();
+      sl[i].setupEC(i);
       eof[i] = sl[i].getEof();
       idx += 2;
     }
-    bool eofAll = false;
+    mdrawerWorld.initGnuplot();                   // gnuplot初期化
+    mdrawerWorld.setAspectRatio(-0.9);            // x軸とy軸の比（負にすると中身が一定）
 
+
+    bool eofAll = false;
+    int cnt = 0;         //論理時刻
+    int drawSkip = 30;
     //ただループでsfront.process()と描画を行っているだけ
     while(!eofAll){
       for(int i = 0; i < edgeNumber; i++){
         sl[i].runEC();
         eof[i] = sl[i].getEof();
       }
+
+      //SLAMが終了したかのチェック
       eofAll = true;
       for(int i = 0; i < edgeNumber; i++){
         if(eof[i] == false){
           eofAll = false;
         }
       }
+      //drawSkipごとに描画、マージとかそのへん
+      if(cnt % drawSkip == 0 && cnt != 0){
+        //よくわからんから２つ限定でやろう
+          mdrawerWorld.drawMapWorld(*sl[0].getPointCloudMap(), *sl[1].getPointCloudMap(), edgeNumber);
+        //mdrawerWorld.drawMapMove(*sl[0].getPointCloudMap(), 5, 5, (double)1/2 * M_PI);
+      }
+      ++cnt;
     }
     printf("SlamLauncher finished.\n");
     while(true) {

@@ -73,7 +73,117 @@ void MapDrawer::drawGp(const vector<LPoint2D> &lps, const vector<Pose2D> &poses,
     double x2 = -sn*dd;             // ロボット座標系のy軸
     double y2 = cs*dd;
     fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, x1, y1);
-    fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, x2, y2);
+    //fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, x2, y2);
+  }
+  
+  fprintf(gp, "e\n");
+
+  if (flush)
+    fflush(gp);         // バッファのデータを書き出す。これしないと描画がよくない
+}
+
+//あるエージェントが作った地図を回転、並進させて描画する
+void MapDrawer::drawMapMove(const PointCloudMap &pcmap, double dx, double dy, double dtheta, bool flush){
+  
+  const vector<LPoint2D> &lps = pcmap.globalMap;         // 地図の点群
+  const vector<Pose2D> &poses = pcmap.poses;             // ロボット軌跡
+
+  // gnuplot設定
+  fprintf(gp, "set multiplot\n");
+  //  fprintf(gp, "plot '-' w p pt 7 ps 0.1, '-' with vector\n");
+  fprintf(gp, "plot '-' w p pt 7 ps 0.1 lc rgb 0x0, '-' with vector\n");
+
+  // 点群の描画
+  int step1=1;                  // 点の間引き間隔。描画が重いとき大きくする
+  for (size_t i=0; i<lps.size(); i+=step1) {
+    const LPoint2D &lp = lps[i];
+    double x, y;
+    x = cos(dtheta) * lp.x  - sin(dtheta) * lp.y + dx;
+    y = sin(dtheta) * lp.x  + cos(dtheta) * lp.y + dy;
+    fprintf(gp, "%lf %lf\n", x, y);    // 点の描画
+  }
+  fprintf(gp, "e\n");
+
+    // ロボット軌跡の描画
+  int step2=10;                      // ロボット位置の間引き間隔
+  for (size_t i=0; i<poses.size(); i+=step2) {
+    const Pose2D &pose = poses[i];
+    double cx = cos(dtheta) * pose.tx - sin(dtheta) * pose.ty + dx;             // 並進位置
+    double cy = sin(dtheta) * pose.tx + cos(dtheta) * pose.ty + dy;
+    double theta = DEG2RAD(pose.th) + dtheta; //回転角（ラジアン）
+    double cs = cos(theta);     // 回転角によるcos
+    double sn = sin(theta);     // 回転角によるsin
+
+    // ロボット座標系の位置と向きを描く
+    double dd = 0.4;
+    double x1 = cs*dd;              // ロボット座標系のx軸
+    double y1 = sn*dd;
+    double x2 = -sn*dd;             // ロボット座標系のy軸
+    double y2 = cs*dd;
+    fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, x1, y1);
+    //fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, x2, y2);
+  }
+  fprintf(gp, "e\n");
+
+  if (flush)
+    fflush(gp);         // バッファのデータを書き出す。これしないと描画がよくない
+}
+
+void MapDrawer::drawMapWorld(const PointCloudMap &pcmap0, const PointCloudMap &pcmap1, int edgeNumber, bool flush){
+
+  //初期設定
+  const vector<LPoint2D> &lps0 = pcmap0.globalMap;         // 地図の点群
+  const vector<Pose2D> &poses0 = pcmap0.poses;             // ロボット軌跡
+  const vector<LPoint2D> &lps1 = pcmap1.globalMap;         // 地図の点群
+  const vector<Pose2D> &poses1 = pcmap1.poses;             // ロボット軌跡
+
+  fprintf(gp, "set multiplot\n");
+  //  fprintf(gp, "plot '-' w p pt 7 ps 0.1, '-' with vector\n");
+  fprintf(gp, "plot '-' w p pt 7 ps 0.1 lc rgb 0x0, '-' with vector\n");
+
+  // 点群の描画
+  int step1=1;                  // 点の間引き間隔。描画が重いとき大きくする
+  for (size_t i=0; i<lps0.size(); i+=step1) {
+    const LPoint2D &lp = lps0[i];
+    fprintf(gp, "%lf %lf\n", lp.x, lp.y);    // 点の描画
+  }
+  for (size_t i=0; i<lps1.size(); i+=step1) {
+    const LPoint2D &lp = lps1[i];
+    fprintf(gp, "%lf %lf\n", lp.x, lp.y);    // 点の描画
+  }
+  fprintf(gp, "e\n");
+
+
+  // ロボット軌跡の描画
+  int step2=10;                      // ロボット位置の間引き間隔
+  double dd = 0.4;
+  for (size_t i=0; i<poses0.size(); i+=step2) {
+    const Pose2D &pose = poses0[i];
+    double cx = pose.tx;             // 並進位置
+    double cy = pose.ty;
+    double cs = cos(DEG2RAD(pose.th));     // 回転角によるcos
+    double sn = sin(DEG2RAD(pose.th));     // 回転角によるsin
+    // ロボット座標系の位置と向きを描く
+    double tx = cs*dd;              // ロボット座標系のx軸
+    double ty = sn*dd;
+    //double x2 = -sn*dd;             // ロボット座標系のy軸
+    //double y2 = cs*dd;
+    fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, tx, ty);
+    //fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, x2, y2);
+  }
+  for (size_t i=0; i<poses1.size(); i+=step2) {
+    const Pose2D &pose = poses1[i];
+    double cx = pose.tx;             // 並進位置
+    double cy = pose.ty;
+    double cs = cos(DEG2RAD(pose.th));     // 回転角によるcos
+    double sn = sin(DEG2RAD(pose.th));     // 回転角によるsin
+    // ロボット座標系の位置と向きを描く
+    double tx = cs*dd;              // ロボット座標系のx軸
+    double ty = sn*dd;
+    //double x2 = -sn*dd;             // ロボット座標系のy軸
+    //double y2 = cs*dd;
+    fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, tx, ty);
+    //fprintf(gp, "%lf %lf %lf %lf\n", cx, cy, x2, y2);
   }
   fprintf(gp, "e\n");
 

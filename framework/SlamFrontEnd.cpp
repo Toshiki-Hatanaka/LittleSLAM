@@ -28,12 +28,12 @@ void SlamFrontEnd::init() {
 ///////////
 
 // 現在スキャンscanを処理する。
-void SlamFrontEnd::process(Scan2D &scan) {
+void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
   if (cnt == 0) 
     init();                                       // 開始時に初期化
 
   // スキャンマッチング
-  smat->matchScan(scan);
+  smat->matchScan(scan, edgeId);
 
   Pose2D curPose = pcmap->getLastPose();          // これはスキャンマッチングで推定した現在のロボット位置
   

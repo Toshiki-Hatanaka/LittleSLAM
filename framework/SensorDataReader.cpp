@@ -32,22 +32,12 @@ bool SensorDataReader::loadScan(size_t cnt, Scan2D &scan) {
 //////////////
 //スキャン歪みを考慮したもの。
 bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
-  if(cnt == 0){
-    //読み飛ばし
-    string ODOM_0, hostname_0; 
-    float x_0, y_0, theta_0, tv_0, rv_0, accel_0, timestamp_0, logTimestamp_0;
-    inFile >> ODOM_0;
-    cout << ODOM_0 << endl;
-    inFile >> x_0 >> y_0 >> theta_0 >> tv_0 >> rv_0 >> accel_0 >> timestamp_0;
-    inFile >> hostname_0;
-    inFile >> logTimestamp_0;
-    cout << x_0 << " " << y_0 << " " << theta_0 << " " << tv_0 << " " << rv_0 << " " << accel_0 << " " << timestamp_0 << " " << hostname_0 << " " << logTimestamp_0 << endl; 
-    printf("最初の読み飛ばしOK\n");
-  }
   string FLASER;
   inFile >> FLASER;                      // ファイル内の項目ラベル
   if(FLASER == "FLASER"){
     vector<LPoint2D> lps;
+    int cnt;
+    inFile >> cnt;                       //スキャン番号
     int pnum;                            // スキャン点数
     inFile >> pnum;
     //printf("点数は%d, ", pnum);
@@ -83,13 +73,13 @@ bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
     double dx, dy, dtheta;
     dx = x_g - x_s;
     dy = y_g - y_s;
-    dtheta = theta_g - theta_s;
+    dtheta = theta_g - theta_s;   //ラジアン
 
     for(int i = 0; i < pnum; i++){
     
       float range, angle;
       range = range_old[i];
-      angle = (float)180/(pnum - 1) * i + angleOffset;
+      angle = (float)180/(pnum - 1) * i + angleOffset; //弧度法
 
       /*
       angle = (float)i/(pnum - 1) * (180 - d_theta) + angleOffset;
@@ -100,7 +90,8 @@ bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
       }
       LPoint2D lp;
       lp.setSid(cnt);                    // スキャン番号はcnt（通し番号）にする
-      lp.calXYCorrect(range, angle, dx, dy, dtheta, i, pnum);            // angle,rangeから点の位置xyを計算
+      lp.calXY(range, angle);
+      //lp.calXYCorrect(range, angle, dx, dy, dtheta, i, pnum);            // angle,rangeから点の位置xyを計算
       lps.emplace_back(lp);
     }
     scan.setLps(lps);
@@ -111,7 +102,7 @@ bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
     pose.ty = y_s;
     pose.setAngle(RAD2DEG(theta_s));          // オドメトリ角度はラジアンなので度にする
     pose.calRmat();
-
+    
     return(true);
   }
   else{

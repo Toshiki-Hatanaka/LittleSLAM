@@ -44,6 +44,8 @@ private:
   bool eof;
   boost::timer tim;
   double totalTime=0, totalTimeDraw=0, totalTimeRead=0;
+
+  int edgeId = 0;
   
 
   Pose2D ipose;                    // オドメトリ地図構築の補助データ。初期位置の角度を0にする
@@ -74,6 +76,10 @@ public:
   bool getEof(){
     return eof;
   }
+
+  PointCloudMap *getPointCloudMap() {
+    return(pcmap);
+  }
 ///////////
 
   void run();
@@ -82,7 +88,7 @@ public:
   bool setFilename(char *filename);
   void skipData(int num);
   void customizeFramework();
-  void setupEC();
+  void setupEC(int edgeId);
   void runEC();
 
 };

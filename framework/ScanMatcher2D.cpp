@@ -19,7 +19,7 @@ using namespace std;
 /////////
 
 // スキャンマッチングの実行
-bool ScanMatcher2D::matchScan(Scan2D &curScan) {
+bool ScanMatcher2D::matchScan(Scan2D &curScan, int edgeId) {
   ++cnt;
 
   //printf("----- ScanMatcher2D: cnt=%d start -----\n", cnt);
@@ -34,6 +34,17 @@ bool ScanMatcher2D::matchScan(Scan2D &curScan) {
 
   // 最初のスキャンは単に地図に入れるだけ
   if (cnt == 0) {
+    if(edgeId == 0){
+      printf("0版\n");
+      initPose.tx = -0.000602, initPose.ty = 0.012727, initPose.th = -1.570796 * 180.0 / M_PI;
+    }
+    else if(edgeId == 1){
+      printf("1版\n");
+      //initPose.tx = -24.395601,initPose.ty = 23.630501, initPose.th = 0.516210 * 180.0 / M_PI;  　　//オドメトリの3501だぞ
+      initPose.tx =-12.329435, initPose.ty = 16.874370, initPose.th = -4.603961;                  //custmizeHの結果
+      //initPose.tx = -12.687278, initPose.ty = 17.095419, initPose.th = -4.053322;               //custmizeIの結果
+    }
+
     growMap(curScan, initPose);
     prevScan = curScan;                      // 直前スキャンの設定
     return(true);

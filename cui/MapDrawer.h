@@ -29,6 +29,9 @@ private:
   double ymin;
   double ymax;
   double aspectR;         // xy比
+  
+  int edgeNumber;
+
 
 public:
   MapDrawer() : gp(nullptr), xmin(-10), xmax(10), ymin(-10), ymax(10), aspectR(-1.0) {
@@ -92,6 +95,7 @@ public:
   void drawMapGp(const PointCloudMap &pcmap);
   void drawScanGp(const Scan2D &scan);
   void drawTrajectoryGp(const std::vector<Pose2D> &poses);
+  void drawMapMove(const PointCloudMap &pcmap, double dx, double dy, double dtheta, bool flush=true);
   void drawGp(const std::vector<LPoint2D> &lps, const std::vector<Pose2D> &poses, bool flush=true);
+  void drawMapWorld(const PointCloudMap &pcmap0, const PointCloudMap &pcmap1, int edgeNumber, bool flush=true);
 };
-

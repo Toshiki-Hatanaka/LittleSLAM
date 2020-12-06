@@ -1,0 +1,15 @@
+cnt == 3501の時
+　　　オドメトリそのまま: initPose.tx = -24.395601,initPose.ty = 23.630501, initPose.th = 0.516210 * 180.0 / M_PI;
+　　　　　　custmizeHの結果: initPose.tx =-12.329435, initPose.ty = 16.874370, initPose.th = -4.603961;
+      custmizeIの結果: initPose.tx = -12.687278, initPose.ty = 17.095419, initPose.th = -4.053322;
+
+
+・Scan2D.cpp
+	MAX_SCAN_RANGE は10で固定
+・NNGridTable.h
+        csize, rsize: 0.05, 50
+
+
+・SensorDataReader.cpp
+	180点なので、180/179刻みで180度
+

@@ -71,7 +71,8 @@ public:
   virtual bool detectLoop(Scan2D *curScan, Pose2D &curPose, int cnt);
   void makeLoopArc(LoopInfo &info);
   bool estimateRevisitPose(const Scan2D *curScan, const std::vector<LPoint2D> &refLps, const Pose2D &initPose, Pose2D &revisitPose);
-
+  bool detectLoopOther(PointCloudMap *curPcmap, PointCloudMap *targetPcmap,int cnt);
+  bool estimateRevisitPoseDummy(const Scan2D *curScan, const std::vector<LPoint2D> &refLps, const Pose2D &initPose, Pose2D &revisitPose);
 };
 
 #endif

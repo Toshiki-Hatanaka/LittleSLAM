@@ -25,6 +25,7 @@
 #include <boost/timer.hpp>
 #include "SensorDataReader.h"
 #include "PointCloudMap.h"
+#include "PointCloudMapLP.h"
 #include "SlamFrontEnd.h"
 #include "SlamBackEnd.h"
 #include "MapDrawer.h"
@@ -51,7 +52,8 @@ private:
   Pose2D ipose;                    // オドメトリ地図構築の補助データ。初期位置の角度を0にする
   Pose2D lidarOffset;              // レーザスキャナとロボットの相対位置
   SensorDataReader sreader;        // ファイルからのセンサデータ読み込み
-  PointCloudMap *pcmap;            // 点群地図
+  //PointCloudMapLP *pcmap;            // 点群地図
+  PointCloudMap *pcmap;
   SlamFrontEnd sfront;             // SLAMフロントエンド
   MapDrawer mdrawer;               // gnuplotによる描画
   FrameworkCustomizer fcustom;     // フレームワークの改造
@@ -80,6 +82,7 @@ public:
   PointCloudMap *getPointCloudMap() {
     return(pcmap);
   }
+
 ///////////
 
   void run();

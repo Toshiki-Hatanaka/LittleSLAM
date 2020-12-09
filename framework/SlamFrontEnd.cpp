@@ -53,7 +53,7 @@ void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
       pcmap->setNthre(5);
     pcmap->makeGlobalMap();                             // 点群地図の全体地図を生成
   }
-
+  
   // ループ閉じ込み
   if (cnt > keyframeSkip && cnt%keyframeSkip==0) {       // キーフレームのときだけ行う
     bool flag = lpd->detectLoop(&scan, curPose, cnt);    // ループ検出を起動
@@ -62,6 +62,7 @@ void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
       sback.remakeMaps();                                // 地図やポーズグラフの修正
     }
   }
+  
 
   //printf("pcmap.size=%lu\n", pcmap->globalMap.size());   // 確認用
 

@@ -31,6 +31,24 @@ void FrameworkCustomizer::makeFramework() {
   sfront->setScanMatcher(&smat);
 }
 
+void FrameworkCustomizer::setupLpss(LoopDetectorSS &lpss){
+  lpss.setPoseEstimator(&poest);
+  lpss.setPoseFuser(&pfu);
+  lpss.setDataAssociator(&dassGT);
+  lpss.setCostFunction(&cfuncPD);
+  lpss.setPointCloudMap(&pcmapLP);
+
+  RefScanMaker *rsm = &rsmLM;                      // 局所地図を参照スキャンとする
+  DataAssociator *dass = &dassGT;                  // 格子テーブルによるデータ対応づけ
+  CostFunction *cfunc = &cfuncPD;                  // 垂直距離をコスト関数とする
+  PoseOptimizer *popt = &poptSL;                   // 最急降下法と直線探索による最適化
+  LoopDetector *lpd = &lpdDM;                      // ダミーのループ検出
+  popt->setCostFunction(cfunc);
+  poest.setDataAssociator(dass);
+  poest.setPoseOptimizer(popt);
+  pfu.setDataAssociator(dass);
+}
+
 /////// 実験用
 
 // フレームワーク基本構成

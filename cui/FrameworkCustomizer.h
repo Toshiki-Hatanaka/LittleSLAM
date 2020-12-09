@@ -82,8 +82,10 @@ public:
     return(pcmap);
   }
 
-//////
+  
 
+//////
+  void setupLpss(LoopDetectorSS &lpss);
   void makeFramework();
   void customizeA();
   void customizeB();

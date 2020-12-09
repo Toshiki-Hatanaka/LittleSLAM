@@ -17,6 +17,7 @@
 #include "SlamLauncher.h"
 #include "ScanPointResampler.h"
 
+
 using namespace std;                       // C++標準ライブラリの名前空間を使う
 
 //////////
@@ -139,8 +140,8 @@ void SlamLauncher::customizeFramework() {
   fcustom.setSlamFrontEnd(&sfront);
   fcustom.makeFramework();
 //  fcustom.customizeG();                         // 退化の対処をしない
-  //fcustom.customizeH();                         // 退化の対処をする
-  fcustom.customizeI();                           // ループ閉じ込みをする
+  fcustom.customizeH();                         // 退化の対処をする
+  //fcustom.customizeI();                           // ループ閉じ込みをする
 
   pcmap = fcustom.getPointCloudMap();           // customizeの後にやること
 }

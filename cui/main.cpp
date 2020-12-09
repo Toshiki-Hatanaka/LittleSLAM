@@ -13,7 +13,6 @@
  ****************************************************************************/
 
 #include "SlamLauncher.h"
-
 int main(int argc, char *argv[]) {
   bool scanCheck=false;              // スキャン表示のみか
   bool odometryOnly=false;           // オドメトリによる地図構築か
@@ -22,6 +21,7 @@ int main(int argc, char *argv[]) {
   int startN[5]={0, 0, 0, 0, 0};        // 開始スキャン番号
   SlamLauncher sl[5];
   MapDrawer mdrawerWorld;
+  FrameworkCustomizer *fcustom = new FrameworkCustomizer();     // フレームワークの改造
   bool eof[5];
 
   if (argc < 2) {
@@ -118,7 +118,9 @@ int main(int argc, char *argv[]) {
 
     bool eofAll = false;
     int cnt = 0;         //論理時刻
-    int drawSkip = 30;
+    int drawSkip = 10;
+    int keyframeSkip = 10;
+
     //ただループでsfront.process()と描画を行っているだけ
     while(!eofAll){
       for(int i = 0; i < edgeNumber; i++){
@@ -133,7 +135,19 @@ int main(int argc, char *argv[]) {
           eofAll = false;
         }
       }
-      //drawSkipごとに描画、マージとかそのへん
+
+      //クラウドによるループ検出
+      if (cnt > keyframeSkip && cnt%keyframeSkip==0) {       // キーフレームのときだけ行う
+        //最初はエッジ1がエッジ0の軌跡を見つけるだけで
+        //const std::vector<Submap> submaps = ((PointCloudMapLP*)sl[0].getPointCloudMap())->submaps;
+        LoopDetectorSS *lpss = new LoopDetectorSS();
+
+        fcustom->setupLpss(*lpss);
+        lpss->detectLoopOther(sl[0].getPointCloudMap(), sl[1].getPointCloudMap(),cnt);
+        lpss->detectLoopOther(sl[1].getPointCloudMap(), sl[0].getPointCloudMap(),cnt);
+        delete lpss;
+      }
+      //drawSkipごとに描画    
       if(cnt % drawSkip == 0 && cnt != 0){
         //よくわからんから２つ限定でやろう
           mdrawerWorld.drawMapWorld(*sl[0].getPointCloudMap(), *sl[1].getPointCloudMap(), edgeNumber);

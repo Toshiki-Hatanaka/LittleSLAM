@@ -32,6 +32,7 @@ bool SensorDataReader::loadScan(size_t cnt, Scan2D &scan) {
 //////////////
 //スキャン歪みを考慮したもの。
 bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
+  scan.setSid(cnt);
   string FLASER;
   inFile >> FLASER;                      // ファイル内の項目ラベル
   if(FLASER == "FLASER"){
@@ -95,7 +96,7 @@ bool SensorDataReader::loadLaserScanNew(size_t cnt, Scan2D &scan) {
       lps.emplace_back(lp);
     }
     scan.setLps(lps);
-
+   // printf("scanについてidは%d, 保持する点群数は%d\n", scan.sid, scan.lps.size());
     // スキャンに対応するオドメトリ情報
     Pose2D &pose = scan.pose;
     pose.tx = x_s;

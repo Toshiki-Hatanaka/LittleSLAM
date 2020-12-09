@@ -23,7 +23,7 @@ bool ScanMatcher2D::matchScan(Scan2D &curScan, int edgeId) {
   ++cnt;
 
   //printf("----- ScanMatcher2D: cnt=%d start -----\n", cnt);
-
+  
   // spresが設定されていれば、スキャン点間隔を均一化する
   if (spres != nullptr)
     spres->resamplePoints(&curScan);
@@ -41,8 +41,8 @@ bool ScanMatcher2D::matchScan(Scan2D &curScan, int edgeId) {
     else if(edgeId == 1){
       printf("1版\n");
       //initPose.tx = -24.395601,initPose.ty = 23.630501, initPose.th = 0.516210 * 180.0 / M_PI;  　　//オドメトリの3501だぞ
-      initPose.tx =-12.329435, initPose.ty = 16.874370, initPose.th = -4.603961;                  //custmizeHの結果
-      //initPose.tx = -12.687278, initPose.ty = 17.095419, initPose.th = -4.053322;               //custmizeIの結果
+      //initPose.tx =-12.329435, initPose.ty = 16.874370, initPose.th = -4.603961;                  //custmizeHの結果
+      initPose.tx = -12.687278, initPose.ty = 17.095419, initPose.th = -4.053322;               //custmizeIの結果
     }
 
     growMap(curScan, initPose);

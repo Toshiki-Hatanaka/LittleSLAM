@@ -13,16 +13,18 @@
  ****************************************************************************/
 
 #include "SlamLauncher.h"
+#include "SlamEdgeCloud.h"
 int main(int argc, char *argv[]) {
   bool scanCheck=false;              // スキャン表示のみか
   bool odometryOnly=false;           // オドメトリによる地図構築か
-  bool edgeCloudSLAM=false;
-  char *filename[5];                    // データファイル名
-  int startN[5]={0, 0, 0, 0, 0};        // 開始スキャン番号
-  SlamLauncher sl[5];
-  MapDrawer mdrawerWorld;
+  bool edgeCloudSLAM=false;          //シングルモードかエッジクラウドモードか
+
+  char *filename;                    // データファイル名
+  int startN=0;        // 開始スキャン番号
+  SlamLauncher sl;
+
   FrameworkCustomizer *fcustom = new FrameworkCustomizer();     // フレームワークの改造
-  bool eof[5];
+  SlamEdgeCloud slEC;
 
   if (argc < 2) {
     printf("Error: too few arguments.\n");
@@ -45,7 +47,7 @@ int main(int argc, char *argv[]) {
         edgeCloudSLAM = true;
       }
     }
-    printf("SlamLauncher: startN=%d, scanCheck=%d, odometryOnly=%d, edgeCloudSLAM=%d\n", startN[0], scanCheck, odometryOnly, edgeCloudSLAM);
+    printf("SlamLauncher: startN=%d, scanCheck=%d, odometryOnly=%d, edgeCloudSLAM=%d\n", startN, scanCheck, odometryOnly, edgeCloudSLAM);
     if (argc == 2) {
       printf("Error: no file name.\n");
       return(1);
@@ -55,37 +57,41 @@ int main(int argc, char *argv[]) {
   if(!edgeCloudSLAM){                  //シングルモード
     printf("シングルモード開始\n");
     if (argc >= idx+1)                 // '-'ある場合idx=2、ない場合idx=1
-      filename[0] = argv[idx];
+      filename = argv[idx];
     if (argc == idx+2)                 // argcがidxより2大きければstartNがある
-      startN[0] = atoi(argv[idx+1]);
+      startN = atoi(argv[idx+1]);
     else if (argc >= idx+2) {
       printf("Error: invalid arguments.\n");
       return(1);
     }
 
-    printf("filename=%s\n", filename[0]);
+    printf("filename=%s\n", filename);
 
     // ファイルを開く
 
-    bool flag = sl[0].setFilename(filename[0]);
+    bool flag = sl.setFilename(filename);
     if (!flag)
       return(1);
 
-    sl[0].setStartN(startN[0]);              // 開始スキャン番号の設定
+    sl.setStartN(startN);              // 開始スキャン番号の設定
 
     // 処理本体
     if (scanCheck)
-      sl[0].showScans();
+      sl.showScans();
     else {                             // スキャン表示以外はSlamLauncher内で場合分け
-      sl[0].setOdometryOnly(odometryOnly);
-      sl[0].customizeFramework();
-      sl[0].run();
+      sl.setOdometryOnly(odometryOnly);
+      sl.customizeFramework();
+      sl.run();
     }
   }
   // エッジクラウドモード　
   // LittleSLAM -w 2 dataset1 startN1 dataset2 startN2 
   else{
     printf("エッジクラウドモード開始\n");
+    //slEC.test(argc, argv, idx);
+    slEC.mainProcess(argc, argv, idx);
+/*
+    
     int edgeNumber = atoi(argv[idx]); //エッジ端末の数
 
     if(edgeNumber == 0){                           //エッジ数のところの入力エラー
@@ -145,6 +151,7 @@ int main(int argc, char *argv[]) {
         fcustom->setupLpss(*lpss);
         lpss->detectLoopOther(sl[0].getPointCloudMap(), sl[1].getPointCloudMap(),cnt);
         lpss->detectLoopOther(sl[1].getPointCloudMap(), sl[0].getPointCloudMap(),cnt);
+        
         delete lpss;
       }
       //drawSkipごとに描画    
@@ -163,6 +170,8 @@ int main(int argc, char *argv[]) {
         usleep(1000);                        // Linuxではusleep
     #endif
     }    
+    */
   }
+
   return(0);
 }

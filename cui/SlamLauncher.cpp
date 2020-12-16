@@ -140,7 +140,7 @@ void SlamLauncher::customizeFramework() {
   fcustom.setSlamFrontEnd(&sfront);
   fcustom.makeFramework();
 //  fcustom.customizeG();                         // 退化の対処をしない
-  fcustom.customizeH();                         // 退化の対処をする
+  fcustom.customizeH(edgeId);                         // 退化の対処をする。地図にidをセットしてる
   //fcustom.customizeI();                           // ループ閉じ込みをする
 
   pcmap = fcustom.getPointCloudMap();           // customizeの後にやること

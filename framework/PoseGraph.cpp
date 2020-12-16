@@ -19,16 +19,17 @@ using namespace std;
 //////////// グラフ生成 ////////////
 
 // ポーズグラフにノード追加
-PoseNode *PoseGraph::addNode(const Pose2D &pose) {
+PoseNode *PoseGraph::addNode(const Pose2D &pose, int edgeId) {
   PoseNode *n1 = allocNode();                // ノード生成
-  addNode(n1, pose);                         // ポーズグラフにノード追加
+  addNode(n1, pose, edgeId);                         // ポーズグラフにノード追加
 
   return(n1);
 }
 
 // ポーズグラフにノード追加
-void PoseGraph::addNode(PoseNode *n1, const Pose2D &pose) {
+void PoseGraph::addNode(PoseNode *n1, const Pose2D &pose, int edgeId) {
   n1->setNid((int)nodes.size());             // ノードID付与。ノードの通し番号と同じ
+  n1->setEdgeId(edgeId);
   n1->setPose(pose);                         // ロボット位置を設定
   nodes.push_back(n1);                       // nodesの最後に追加
 }

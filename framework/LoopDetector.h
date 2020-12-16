@@ -29,7 +29,9 @@ struct LoopInfo
 {
   bool arcked;                   // すでにポーズアークを張ったか
   int curId;                     // 現在キーフレームid（スキャン）
+  int curEdgeId;
   int refId;                     // 参照キーフレームid（スキャン，または，LocalGridMap2D）
+  int refEdgeId;
   Pose2D pose;                   // 現在キーフレームが参照キーフレームにマッチするグローバル姿勢（Gridベースの場合は逆）
   double score;                  // ICPマッチングスコア
   Eigen::Matrix3d cov;           // 共分散

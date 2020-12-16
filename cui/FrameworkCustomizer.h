@@ -86,7 +86,7 @@ public:
 
 //////
   void setupLpss(LoopDetectorSS &lpss);
-  void makeFramework();
+  void makeFramework();              //デフォルトでは0
   void customizeA();
   void customizeB();
   void customizeC();
@@ -94,7 +94,7 @@ public:
   void customizeE();
   void customizeF();
   void customizeG();
-  void customizeH();
+  void customizeH(int id = 0);
   void customizeI();
 };
 

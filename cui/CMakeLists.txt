@@ -25,12 +25,14 @@ set(CUI_SRCS
     SlamLauncher.cpp
     FrameworkCustomizer.cpp
     MapDrawer.cpp
+    SlamEdgeCloud.cpp
 )
 
 set(CUI_HDRS
     SlamLauncher.h
     FrameworkCustomizer.h
     MapDrawer.h
+    SlamEdgeCloud.h
 )
 
 add_executable(LittleSLAM

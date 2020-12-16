@@ -92,7 +92,7 @@ printf("-- LoopDetected -- \n");
   return(flag);
 }
 
-bool LoopDetectorSS::detectLoopOther(PointCloudMap *curPcmap, PointCloudMap *targetPcmap,int cnt){
+bool LoopDetectorSS::detectLoopCloud(PointCloudMap *curPcmap, PointCloudMap *targetPcmap,int cnt){
   const Pose2D curPose = curPcmap->getLastPose();
 
   const Scan2D curScan = curPcmap->lastScan;
@@ -131,19 +131,21 @@ bool LoopDetectorSS::detectLoopOther(PointCloudMap *curPcmap, PointCloudMap *tar
 
   // 再訪点の位置を求める
   Pose2D revisitPose;
-  bool flag = estimateRevisitPoseDummy(&curScan, refSubmap.mps, curPose, revisitPose);
+  bool flag = estimateRevisitPose(&curScan, refSubmap.mps, curPose, revisitPose);
   //bool flag = estimateRevisitPose(&curScan, refSubmap.mps, curPose, revisitPose);
 
   if (flag) { 
-    /*                                         // ループを検出した
+                                            // ループを検出した
     Eigen::Matrix3d icpCov;                                                  // ICPの共分散
-    double ratio = pfu->calIcpCovariance(revisitPose, curScan, icpCov);      // ICPの共分散を計算
-
+    double ratio = pfu->calIcpCovariance(revisitPose, &curScan, icpCov);      // ICPの共分散を計算
     LoopInfo info;                                     // ループ検出結果
     info.pose = revisitPose;                           // ループアーク情報に再訪点位置を設定
     info.cov = icpCov;                                 // ループアーク情報に共分散を設定。
     info.curId = cnt;                                  // 現在位置のノードid
+    info.curEdgeId = curPcmap->GetEdgeId();            //現在位置のノードのエッジid
     info.refId = static_cast<int>(jmin);               // 前回訪問点のノードid
+    info.refEdgeId = targetPcmap->GetEdgeId();
+    /*
     makeLoopArc(info);                                 // ループアーク生成
 
     // 確認用
@@ -155,7 +157,7 @@ bool LoopDetectorSS::detectLoopOther(PointCloudMap *curPcmap, PointCloudMap *tar
     LoopMatch lm(*curScan, refScan, info);
     loopMatches.emplace_back(lm);
     printf("curId=%d, refId=%d\n", info.curId, info.refId);
-    */
+*/
   printf("ok\n");
   }
 }
@@ -193,6 +195,96 @@ void LoopDetectorSS::makeLoopArc(LoopInfo &info) {
 }
 
 //////////
+
+// 現在スキャンcurScanと部分地図の点群refLpsでICPを行い、再訪点の位置を求める。
+bool LoopDetectorSS::estimateRevisitPose(const Scan2D *curScan, const vector<LPoint2D> &refLps, const Pose2D &initPose, Pose2D &revisitPose) {
+  dass->setRefBase(refLps);                              // データ対応づけ器に参照点群を設定
+  cfunc->setEvlimit(0.2);                                // コスト関数の誤差閾値
+
+  //printf("initPose: tx=%g, ty=%g, th=%g\n", initPose.tx, initPose.ty, initPose.th);       // 確認用
+
+  size_t usedNumMin = 50; 
+//  size_t usedNumMin = 100;
+
+  // 初期位置initPoseの周囲をしらみつぶしに調べる。
+  // 効率化のため、ICPは行わず、各位置で単純にマッチングスコアを調べる。
+  double rangeT = 1;                                     // 並進の探索範囲[m]
+  double rangeA = 45;                                    // 回転の探索範囲[度]
+  double dd = 0.2;                                       // 並進の探索間隔[m]
+  double da = 2;                                         // 回転の探索間隔[度]
+  double pnrateMax=0;
+  vector<double> pnrates;
+  double scoreMin=1000;
+  vector<double> scores;
+  vector<Pose2D> candidates;                             // スコアのよい候補位置
+  for (double dy=-rangeT; dy<=rangeT; dy+=dd) {          // 並進yの探索繰り返し
+    double y = initPose.ty + dy;                         // 初期位置に変位分dyを加える
+    for (double dx=-rangeT; dx<=rangeT; dx+=dd) {        // 並進xの探索繰り返し
+      double x = initPose.tx + dx;                       // 初期位置に変位分dxを加える
+      for (double dth=-rangeA; dth<=rangeA; dth+=da) {   // 回転の探索繰り返し
+        double th = MyUtil::add(initPose.th, dth);       // 初期位置に変位分dthを加える
+        Pose2D pose(x, y, th);
+        double mratio = dass->findCorrespondence(curScan, pose);   // 位置poseでデータ対応づけ
+        size_t usedNum = dass->curLps.size();
+//        printf("usedNum=%lu, mratio=%g\n", usedNum, mratio);          // 確認用
+        if (usedNum < usedNumMin || mratio < 0.9)        // 対応率が悪いと飛ばす
+          continue;
+        cfunc->setPoints(dass->curLps, dass->refLps);    // コスト関数に点群を設定
+        double score =  cfunc->calValue(x, y, th);       // コスト値（マッチングスコア）
+        double pnrate = cfunc->getPnrate();              // 詳細な点の対応率
+//        printf("score=%g, pnrate=%g\n", score, pnrate);                    // 確認用
+        if (pnrate > 0.8) {
+          candidates.emplace_back(pose);
+          if (score < scoreMin)
+            scoreMin = score;
+          scores.push_back(score);
+//          printf("pose: tx=%g, ty=%g, th=%g\n", pose.tx, pose.ty, pose.th);  // 確認用
+//          printf("score=%g, pnrate=%g\n", score, pnrate);                    // 確認用
+        }
+      }
+    }
+  }
+  //printf("candidates.size=%lu\n", candidates.size());                           // 確認用
+  if (candidates.size() == 0)
+    return(false);
+
+  // 候補位置candidatesの中から最もよいものをICPで選ぶ
+  Pose2D best;                                              // 最良候補
+  double smin=1000000;                                      // ICPスコア最小値
+  estim->setScanPair(curScan, refLps);                      // ICPにスキャン設定
+  for (size_t i=0; i<candidates.size(); i++) {
+    Pose2D p = candidates[i];                               // 候補位置
+    //printf("score=%g\n", scores[i]);    // 確認用
+    Pose2D estP;
+    double score = estim->estimatePose(p, estP);            // ICPでマッチング位置を求める
+    double pnrate = estim->getPnrate();                     // ICPでの点の対応率
+    size_t usedNum = estim->getUsedNum();                   // ICPで使用した点数
+    if (score < smin && pnrate >= 0.9 && usedNum >= usedNumMin) {  // ループ検出は条件厳しく
+      smin = score;
+      best = estP;
+      printf("smin=%g, pnrate=%g, usedNum=%lu\n", smin, pnrate, usedNum);    // 確認用
+    }
+  }
+
+  // 最小スコアが閾値より小さければ見つけた
+  if (smin <= scthre) {
+    revisitPose = best;
+    printf("最終チェッククリア\n");
+    return(true);
+  }
+
+  return(false);
+}
+
+
+
+
+
+
+
+
+
+/*
 bool LoopDetectorSS::estimateRevisitPoseDummy(const Scan2D *curScan, const std::vector<LPoint2D> &refLps, const Pose2D &initPose, Pose2D &revisitPose){
   //printf("aaaaa\n");
   dass->setRefBase(refLps);                              // データ対応づけ器に参照点群を設定
@@ -270,81 +362,4 @@ bool LoopDetectorSS::estimateRevisitPoseDummy(const Scan2D *curScan, const std::
     return(true);
   }
 }
-// 現在スキャンcurScanと部分地図の点群refLpsでICPを行い、再訪点の位置を求める。
-bool LoopDetectorSS::estimateRevisitPose(const Scan2D *curScan, const vector<LPoint2D> &refLps, const Pose2D &initPose, Pose2D &revisitPose) {
-  dass->setRefBase(refLps);                              // データ対応づけ器に参照点群を設定
-  cfunc->setEvlimit(0.2);                                // コスト関数の誤差閾値
-
-  printf("initPose: tx=%g, ty=%g, th=%g\n", initPose.tx, initPose.ty, initPose.th);       // 確認用
-
-  size_t usedNumMin = 50; 
-//  size_t usedNumMin = 100;
-
-  // 初期位置initPoseの周囲をしらみつぶしに調べる。
-  // 効率化のため、ICPは行わず、各位置で単純にマッチングスコアを調べる。
-  double rangeT = 1;                                     // 並進の探索範囲[m]
-  double rangeA = 45;                                    // 回転の探索範囲[度]
-  double dd = 0.2;                                       // 並進の探索間隔[m]
-  double da = 2;                                         // 回転の探索間隔[度]
-  double pnrateMax=0;
-  vector<double> pnrates;
-  double scoreMin=1000;
-  vector<double> scores;
-  vector<Pose2D> candidates;                             // スコアのよい候補位置
-  for (double dy=-rangeT; dy<=rangeT; dy+=dd) {          // 並進yの探索繰り返し
-    double y = initPose.ty + dy;                         // 初期位置に変位分dyを加える
-    for (double dx=-rangeT; dx<=rangeT; dx+=dd) {        // 並進xの探索繰り返し
-      double x = initPose.tx + dx;                       // 初期位置に変位分dxを加える
-      for (double dth=-rangeA; dth<=rangeA; dth+=da) {   // 回転の探索繰り返し
-        double th = MyUtil::add(initPose.th, dth);       // 初期位置に変位分dthを加える
-        Pose2D pose(x, y, th);
-        double mratio = dass->findCorrespondence(curScan, pose);   // 位置poseでデータ対応づけ
-        size_t usedNum = dass->curLps.size();
-//        printf("usedNum=%lu, mratio=%g\n", usedNum, mratio);          // 確認用
-        if (usedNum < usedNumMin || mratio < 0.9)        // 対応率が悪いと飛ばす
-          continue;
-        cfunc->setPoints(dass->curLps, dass->refLps);    // コスト関数に点群を設定
-        double score =  cfunc->calValue(x, y, th);       // コスト値（マッチングスコア）
-        double pnrate = cfunc->getPnrate();              // 詳細な点の対応率
-//        printf("score=%g, pnrate=%g\n", score, pnrate);                    // 確認用
-        if (pnrate > 0.8) {
-          candidates.emplace_back(pose);
-          if (score < scoreMin)
-            scoreMin = score;
-          scores.push_back(score);
-//          printf("pose: tx=%g, ty=%g, th=%g\n", pose.tx, pose.ty, pose.th);  // 確認用
-//          printf("score=%g, pnrate=%g\n", score, pnrate);                    // 確認用
-        }
-      }
-    }
-  }
-  printf("candidates.size=%lu\n", candidates.size());                           // 確認用
-  if (candidates.size() == 0)
-    return(false);
-
-  // 候補位置candidatesの中から最もよいものをICPで選ぶ
-  Pose2D best;                                              // 最良候補
-  double smin=1000000;                                      // ICPスコア最小値
-  estim->setScanPair(curScan, refLps);                      // ICPにスキャン設定
-  for (size_t i=0; i<candidates.size(); i++) {
-    Pose2D p = candidates[i];                               // 候補位置
-    printf("score=%g\n", scores[i]);    // 確認用
-    Pose2D estP;
-    double score = estim->estimatePose(p, estP);            // ICPでマッチング位置を求める
-    double pnrate = estim->getPnrate();                     // ICPでの点の対応率
-    size_t usedNum = estim->getUsedNum();                   // ICPで使用した点数
-    if (score < smin && pnrate >= 0.9 && usedNum >= usedNumMin) {  // ループ検出は条件厳しく
-      smin = score;
-      best = estP;
-      printf("smin=%g, pnrate=%g, usedNum=%lu\n", smin, pnrate, usedNum);    // 確認用
-    }
-  }
-
-  // 最小スコアが閾値より小さければ見つけた
-  if (smin <= scthre) {
-    revisitPose = best;
-    return(true);
-  }
-
-  return(false);
-}
+*/

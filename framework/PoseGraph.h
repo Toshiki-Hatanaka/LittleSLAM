@@ -27,6 +27,7 @@ struct PoseArc;
 struct PoseNode
 {
   int nid;                       // ノードID。PoseGraphのnodesのインデックス（通し番号）
+  int edgeId;                    // マシンID
   Pose2D pose;                   // このノードのロボット位置
   std::vector<PoseArc*> arcs;    // このノードにつながるアーク
 
@@ -53,6 +54,10 @@ struct PoseNode
   
   void setNid(int n) {
     nid = n;
+  }
+
+  void setEdgeId(int id){
+    edgeId = id;
   }
 
   void addArc(PoseArc *a) {
@@ -148,8 +153,8 @@ public:
 
 //////////////
 
-  PoseNode *addNode(const Pose2D &pose);
-  void addNode(PoseNode *n1, const Pose2D &pose);
+  PoseNode *addNode(const Pose2D &pose, int edgeId);
+  void addNode(PoseNode *n1, const Pose2D &pose, int edgeId);
   PoseNode *findNode(int nid);
 
   void addArc(PoseArc *arc);

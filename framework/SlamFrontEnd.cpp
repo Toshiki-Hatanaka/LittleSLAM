@@ -39,11 +39,11 @@ void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
   
   // ポーズグラフにオドメトリアークを追加
   if (cnt == 0) {                                 // 最初はノードを置くだけ。
-    pg->addNode(curPose);
+    pg->addNode(curPose, edgeId);
   }
   else {                                          // 次からはノードを追加して、オドメトリアークを張る
     Eigen::Matrix3d &cov = smat->getCovariance();
-    makeOdometryArc(curPose, cov);
+    makeOdometryArc(curPose, cov, edgeId);
   }
 
   if (cnt%keyframeSkip==0) {                             // キーフレームのときだけ行う
@@ -74,11 +74,11 @@ void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
 ////////////
 
 // オドメトリアークの生成
-bool SlamFrontEnd::makeOdometryArc(Pose2D &curPose, const Eigen::Matrix3d &fusedCov) {
+bool SlamFrontEnd::makeOdometryArc(Pose2D &curPose, const Eigen::Matrix3d &fusedCov, int edgeId) {
   if (pg->nodes.size() == 0)                             // 念のためのチェック
     return(false);
   PoseNode *lastNode = pg->nodes.back();                 // 直前ノード
-  PoseNode *curNode = pg->addNode(curPose);              // ポーズグラフに現在ノードを追加
+  PoseNode *curNode = pg->addNode(curPose, edgeId);              // ポーズグラフに現在ノードを追加
 
   // 直前ノードと現在ノードの間にオドメトリアークを張る
   Pose2D &lastPose = lastNode->pose;

@@ -97,7 +97,7 @@ public:
 
   void init();
   void process(Scan2D &scan, int edgeId);
-  bool makeOdometryArc(Pose2D &curPose, const Eigen::Matrix3d &cov);
+  bool makeOdometryArc(Pose2D &curPose, const Eigen::Matrix3d &cov, int edgeId);
 
   void countLoopArcs();
 };

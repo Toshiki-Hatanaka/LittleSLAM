@@ -36,6 +36,8 @@ public:
   std::vector<LPoint2D> globalMap;                 // 全体地図。間引き後の点
   std::vector<LPoint2D> localMap;                  // 現在位置近傍の局所地図。スキャンマッチングに使う
 
+  int edgeId;
+
   PointCloudMap() : nthre(1) {
     globalMap.reserve(MAX_POINT_NUM);              // 最初に確保
   }
@@ -59,6 +61,14 @@ public:
 
   void setLastScan(const Scan2D &s) {
     lastScan = s;
+  }
+
+  void setEdgeId(int id){
+    edgeId = id;
+  }
+
+  int GetEdgeId(){
+    return edgeId;
   }
 
 /////////////

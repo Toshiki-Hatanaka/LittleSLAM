@@ -33,6 +33,7 @@ Pose2D SlamBackEnd::adjustPoses() {
 
 /////////////////////////////
 
+//各ノードに行う
 void SlamBackEnd::remakeMaps() {
   // PoseGraphの修正
   vector<PoseNode*> &pnodes = pg->nodes;      // ポーズノード
@@ -44,5 +45,32 @@ void SlamBackEnd::remakeMaps() {
   printf("newPoses.size=%lu, nodes.size=%lu\n", newPoses.size(), pnodes.size());
 
   // PointCloudMapの修正
+
+  //コアダンプしてる
   pcmap->remakeMaps(newPoses);
+}
+
+void SlamBackEnd::remakeMapsCloud(PointCloudMap *pcmap, int firstEdgeNodesSize){
+  //ここのpgはpgCloud
+  vector<PoseNode*> &pnodes = pg->nodes;      // ポーズノード
+  int edgeId = pcmap->edgeId;
+  size_t startIndex = firstEdgeNodesSize * edgeId;
+  size_t endIndex = firstEdgeNodesSize * edgeId + pcmap->poses.size();
+  std::vector<Pose2D> newPosesEach;            // ポーズ調整後の姿勢
+
+  for (size_t i = startIndex; i < endIndex; i++) {
+    Pose2D &npose = newPoses[i];
+    newPosesEach.emplace_back(npose);
+    PoseNode *pnode = pnodes[i];              // ノードはロボット位置と1:1対応
+    pnode->setPose(npose);                    // 各ノードの位置を更新
+
+    //各posegraphは？
+  }
+  printf("newPoses.size=%lu, nodes.size=%lu\n", newPoses.size(), pnodes.size());
+
+  // PointCloudMapの修正
+
+  //コアダンプしてる
+  pcmap->remakeMaps(newPosesEach);
+  printf("作りなおした\n");
 }

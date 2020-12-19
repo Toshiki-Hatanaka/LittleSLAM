@@ -19,20 +19,24 @@ class SlamEdgeCloud{
 
         MapDrawer mdrawerWorld;
         FrameworkCustomizer *fcustom;     // フレームワークの改造
+        SlamBackEnd sback;
+        std::vector<PoseArc> loopArcs;         // ループアークの集合。アークは片方向のみもつ
         int edgeNumber;
         size_t cnt = 0;  
         bool eofAll = false;
         int drawSkip;
         int keyframeSkip;
-    
+        
+        int curEdgeId;
+        int refEdgeId;
+        int firstEdgeNodeSize;
     public:
         SlamEdgeCloud() :  drawSkip(10), keyframeSkip(10), fcustom(new FrameworkCustomizer()){
         }
         void mainProcess(int argc, char *argv[], int idx);
         void setup(int argc, char *argv[], int idx);
         void cloudRun();
-        void test (int argc, char *argv[], int idx);
-        
+        void makeLoopArcCloud(LoopInfo* info, PoseGraph* pg);
 };
 
 

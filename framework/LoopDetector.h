@@ -37,9 +37,11 @@ struct LoopInfo
   Eigen::Matrix3d cov;           // 共分散
 
   LoopInfo() : arcked(false), curId(-1), refId(-1), score(-1) {
+    //printf("生まれた\n");
   }
 
   ~LoopInfo() {
+    //printf("死んだ\n");
   }
   
   void setArcked(bool t) {

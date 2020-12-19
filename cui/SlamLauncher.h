@@ -30,6 +30,7 @@
 #include "SlamBackEnd.h"
 #include "MapDrawer.h"
 #include "FrameworkCustomizer.h"
+#include "PoseGraph.h"
 
 /////////////
 
@@ -82,6 +83,11 @@ public:
   PointCloudMap *getPointCloudMap() {
     return(pcmap);
   }
+
+  PoseGraph *getPoseGraph() {
+    return(sfront.getPoseGraph());
+  }
+
 
 ///////////
 

@@ -159,6 +159,7 @@ public:
 
   void addArc(PoseArc *arc);
   PoseArc *makeArc(int srcNid, int dstNid, const Pose2D &relPose, const Eigen::Matrix3d &cov);
+  PoseArc *makeArcCloud(int srcNid, int srcCloudId, int dstNid, int dstCloudId, const Pose2D &relPose, const Eigen::Matrix3d &cov);
   PoseArc *findArc(int srcNid, int dstNid);
 
   void printNodes();

@@ -92,7 +92,7 @@ printf("-- LoopDetected -- \n");
   return(flag);
 }
 
-bool LoopDetectorSS::detectLoopCloud(PointCloudMap *curPcmap, PointCloudMap *targetPcmap,int cnt){
+LoopInfo* LoopDetectorSS::detectLoopCloud(PointCloudMap *curPcmap, PointCloudMap *targetPcmap,int cnt){
   const Pose2D curPose = curPcmap->getLastPose();
 
   const Scan2D curScan = curPcmap->lastScan;
@@ -119,7 +119,7 @@ bool LoopDetectorSS::detectLoopCloud(PointCloudMap *curPcmap, PointCloudMap *tar
 
 // 前回訪問点までの距離が遠いとループ検出しない
   if (dmin > radius*radius){
-      return(false);
+    return nullptr;
   }                          
 
   Pose2D pmin = poses[jmin];
@@ -138,27 +138,19 @@ bool LoopDetectorSS::detectLoopCloud(PointCloudMap *curPcmap, PointCloudMap *tar
                                             // ループを検出した
     Eigen::Matrix3d icpCov;                                                  // ICPの共分散
     double ratio = pfu->calIcpCovariance(revisitPose, &curScan, icpCov);      // ICPの共分散を計算
-    LoopInfo info;                                     // ループ検出結果
-    info.pose = revisitPose;                           // ループアーク情報に再訪点位置を設定
-    info.cov = icpCov;                                 // ループアーク情報に共分散を設定。
-    info.curId = cnt;                                  // 現在位置のノードid
-    info.curEdgeId = curPcmap->GetEdgeId();            //現在位置のノードのエッジid
-    info.refId = static_cast<int>(jmin);               // 前回訪問点のノードid
-    info.refEdgeId = targetPcmap->GetEdgeId();
-    /*
-    makeLoopArc(info);                                 // ループアーク生成
-
-    // 確認用
-    Scan2D refScan;
-    Pose2D spose = poses[refSubmap.cntS];
-    refScan.setSid(info.refId);
-    refScan.setLps(refSubmap.mps);
-    refScan.setPose(spose);
-    LoopMatch lm(*curScan, refScan, info);
-    loopMatches.emplace_back(lm);
-    printf("curId=%d, refId=%d\n", info.curId, info.refId);
-*/
-  printf("ok\n");
+    LoopInfo *info = new LoopInfo();                                     // ループ検出結果
+    info->pose = revisitPose;                           // ループアーク情報に再訪点位置を設定
+    info->cov = icpCov;                                 // ループアーク情報に共分散を設定。
+    info->curId = cnt;                                  // 現在位置のノードid
+    info->curEdgeId = curPcmap->GetEdgeId();            //現在位置のノードのエッジid
+    info->refId = static_cast<int>(jmin);               // 前回訪問点のノードid
+    info->refEdgeId = targetPcmap->GetEdgeId();
+    //printf("ok\n");
+    return info;
+  }
+  else{
+    //printf("ダメだった\n");
+    return nullptr;
   }
 }
 
@@ -262,14 +254,14 @@ bool LoopDetectorSS::estimateRevisitPose(const Scan2D *curScan, const vector<LPo
     if (score < smin && pnrate >= 0.9 && usedNum >= usedNumMin) {  // ループ検出は条件厳しく
       smin = score;
       best = estP;
-      printf("smin=%g, pnrate=%g, usedNum=%lu\n", smin, pnrate, usedNum);    // 確認用
+      //printf("smin=%g, pnrate=%g, usedNum=%lu\n", smin, pnrate, usedNum);    // 確認用
     }
   }
 
   // 最小スコアが閾値より小さければ見つけた
   if (smin <= scthre) {
     revisitPose = best;
-    printf("最終チェッククリア\n");
+    //printf("最終チェッククリア\n");
     return(true);
   }
 

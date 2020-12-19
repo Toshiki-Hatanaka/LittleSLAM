@@ -49,6 +49,7 @@ public:
 
   Pose2D adjustPoses();
   void remakeMaps(); 
+  void remakeMapsCloud(PointCloudMap *pcmap,int firstEdgeNodesSize);
 };
 
 #endif

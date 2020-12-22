@@ -75,6 +75,7 @@ struct PoseArc
   PoseNode *dst;                      // このアークの終点側のノード
   Pose2D relPose;                     // このアークのもつ相対位置(計測値)
   Eigen::Matrix3d inf;                // 情報行列
+  bool loop = false;
 
   PoseArc(void) : src(nullptr), dst(nullptr){
   }
@@ -159,7 +160,6 @@ public:
 
   void addArc(PoseArc *arc);
   PoseArc *makeArc(int srcNid, int dstNid, const Pose2D &relPose, const Eigen::Matrix3d &cov);
-  PoseArc *makeArcCloud(int srcNid, int srcCloudId, int dstNid, int dstCloudId, const Pose2D &relPose, const Eigen::Matrix3d &cov);
   PoseArc *findArc(int srcNid, int dstNid);
 
   void printNodes();

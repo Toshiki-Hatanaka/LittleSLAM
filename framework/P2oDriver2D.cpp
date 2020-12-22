@@ -20,7 +20,7 @@ using namespace std;
 ////////
 
 // kslamを用いてポーズグラフpgをポーズ調整し、その結果のロボット軌跡をnewPosesに格納する。
-void P2oDriver2D::doP2o( PoseGraph &pg, vector<Pose2D> &newPoses, int N) {
+void P2oDriver2D::doP2o( PoseGraph &pg, vector<Pose2D> &newPoses, int firstEdgeNodeSize, int N) {
   vector<PoseNode*> &nodes = pg.nodes;                        // ポーズノード
   vector<PoseArc*> &arcs = pg.arcs;                           // ポーズアーク
 
@@ -41,8 +41,14 @@ void P2oDriver2D::doP2o( PoseGraph &pg, vector<Pose2D> &newPoses, int N) {
     PoseNode *dst = arc->dst;
     Pose2D &relPose = arc->relPose;
     p2o::Con2D con;
-    con.id1 = src->nid;
-    con.id2 = dst->nid;
+    //オドメトリアークとループアークがごっちゃになってる？
+    con.id1 = firstEdgeNodeSize * src->edgeId + src->nid;
+    con.id2 = firstEdgeNodeSize * dst->edgeId + dst->nid;
+    if(arc->loop){
+      //printf("通し番号は%dから%d\n", con.id1, con.id2);
+    }
+
+
     con.t = p2o::Pose2D(relPose.tx, relPose.ty, DEG2RAD(relPose.th));
     for (int k=0; k<3; k++)
       for (int m=0; m<3; m++)

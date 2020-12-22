@@ -29,9 +29,9 @@ void SlamFrontEnd::init() {
 
 // 現在スキャンscanを処理する。
 void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
-  if (cnt == 0) 
+  if (cnt == 0){
     init();                                       // 開始時に初期化
-
+  }
   // スキャンマッチング
   smat->matchScan(scan, edgeId);
 
@@ -47,18 +47,20 @@ void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
   }
 
   if (cnt%keyframeSkip==0) {                             // キーフレームのときだけ行う
-    if (cnt == 0)
+    if (cnt == 0){
       pcmap->setNthre(1);                                // cnt=0のときは地図が小さいのでサンプリング多くする
-    else
+    }
+    else{
       pcmap->setNthre(5);
+    }
     pcmap->makeGlobalMap();                             // 点群地図の全体地図を生成
   }
   
   // ループ閉じ込み
   if (cnt > keyframeSkip && cnt%keyframeSkip==0) {       // キーフレームのときだけ行う
-    bool flag = lpd->detectLoop(&scan, curPose, cnt);    // ループ検出を起動
+    bool flag = lpd->detectLoop(&scan, curPose, cnt);    // ループ検出を起動。custmizeHはここをスルーする
     if (flag) {
-      sback.adjustPoses();                               // ループが見つかったらポーズ調整
+      sback.adjustPoses(0);                               // ループが見つかったらポーズ調整
       sback.remakeMaps();                                // 地図やポーズグラフの修正
     }
   }

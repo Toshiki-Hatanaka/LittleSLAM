@@ -72,7 +72,7 @@ public:
   void makeLoopArc(LoopInfo &info);
   void makeLoopArcCloud(LoopInfo &info);
   bool estimateRevisitPose(const Scan2D *curScan, const std::vector<LPoint2D> &refLps, const Pose2D &initPose, Pose2D &revisitPose);
-  LoopInfo* detectLoopCloud(PointCloudMap *curPcmap, PointCloudMap *targetPcmap,int cnt);
+  LoopInfo* detectLoopCloud(PointCloudMap *curPcmap, PointCloudMap *refPcmap,int cnt);
   bool estimateRevisitPoseDummy(const Scan2D *curScan, const std::vector<LPoint2D> &refLps, const Pose2D &initPose, Pose2D &revisitPose);
 };
 

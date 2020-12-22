@@ -60,7 +60,7 @@ void SlamLauncher::run() {
     totalTimeDraw += (t2-t1);              // 描画時間の合計
     totalTimeRead += (t3-t2);              // ロード時間の合計
 
-    printf("---- SlamLauncher: cnt=%lu ends ----\n", cnt);
+    //printf("---- SlamLauncher: cnt=%lu ends ----\n", cnt);
   }
   sreader.closeScanFile();
 
@@ -82,7 +82,7 @@ void SlamLauncher::run() {
   }
  return;
 }
-
+//SlamLauncherにエッジIDの登録、地図描画の初期設定、最初のスキャン読み込み、実行時間初期化
 void SlamLauncher::setupEC(int edgeId){
   this->edgeId = edgeId;
   mdrawer.initGnuplot();                   // gnuplot初期化
@@ -96,8 +96,8 @@ void SlamLauncher::setupEC(int edgeId){
   totalTime=0, totalTimeDraw=0, totalTimeRead=0;
 }
 
+// SLAMによる地図構築、地図描画、次のスキャン読み込み、各処理時間の計測
 void SlamLauncher::runEC(){
-
     sfront.process(scan, edgeId);                // SLAMによる地図構築
 
     double t1 = 1000*tim.elapsed();
@@ -135,13 +135,13 @@ bool SlamLauncher::setFilename(char *filename) {
 }
 
 ////////////
-
+//ECモードでは基本的にcustmizeHを選ぶ。ここで各クラスの情報をポインタでつなげる
 void SlamLauncher::customizeFramework() {
   fcustom.setSlamFrontEnd(&sfront);
   fcustom.makeFramework();
 //  fcustom.customizeG();                         // 退化の対処をしない
-  fcustom.customizeH(edgeId);                         // 退化の対処をする。地図にidをセットしてる
-  //fcustom.customizeI();                           // ループ閉じ込みをする
+  //fcustom.customizeH(edgeId);                         // 退化の対処をする。地図にidをセットしてる
+  fcustom.customizeI(edgeId);                           // ループ閉じ込みをする
 
   pcmap = fcustom.getPointCloudMap();           // customizeの後にやること
 }

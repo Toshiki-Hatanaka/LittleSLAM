@@ -22,8 +22,6 @@ int main(int argc, char *argv[]) {
   char *filename;                    // データファイル名
   int startN=0;        // 開始スキャン番号
   SlamLauncher sl;
-
-  FrameworkCustomizer *fcustom = new FrameworkCustomizer();     // フレームワークの改造
   SlamEdgeCloud slEC;
 
   if (argc < 2) {
@@ -47,7 +45,7 @@ int main(int argc, char *argv[]) {
         edgeCloudSLAM = true;
       }
     }
-    printf("SlamLauncher: startN=%d, scanCheck=%d, odometryOnly=%d, edgeCloudSLAM=%d\n", startN, scanCheck, odometryOnly, edgeCloudSLAM);
+    //printf("SlamLauncher: startN=%d, scanCheck=%d, odometryOnly=%d, edgeCloudSLAM=%d\n", startN, scanCheck, odometryOnly, edgeCloudSLAM);
     if (argc == 2) {
       printf("Error: no file name.\n");
       return(1);
@@ -65,7 +63,7 @@ int main(int argc, char *argv[]) {
       return(1);
     }
 
-    printf("filename=%s\n", filename);
+    //printf("filename=%s\n", filename);
 
     // ファイルを開く
 
@@ -88,89 +86,7 @@ int main(int argc, char *argv[]) {
   // LittleSLAM -w 2 dataset1 startN1 dataset2 startN2 
   else{
     printf("エッジクラウドモード開始\n");
-    //slEC.test(argc, argv, idx);
     slEC.mainProcess(argc, argv, idx);
-/*
-    
-    int edgeNumber = atoi(argv[idx]); //エッジ端末の数
-
-    if(edgeNumber == 0){                           //エッジ数のところの入力エラー
-      printf("Error: invalid arguments(2).\n");
-      return(1);
-    }
-    if(argc != edgeNumber * 2 + 3){
-      printf("Error: invalid arguments(3).\n");    //ちゃんとファイル名とstartNを正しく入力しているかの確認
-      return(1);
-    }
-    idx++;
-    //各slにファイルとstartNとframeworkをセット
-    for(int i = 0; i < edgeNumber; i++){
-      filename[i] = argv[idx];
-      startN[i] = atoi(argv[idx + 1]);
-      bool flag = sl[i].setFilename(filename[i]);
-      if(!flag){
-        return(1);
-      }
-      sl[i].setStartN(startN[i]);
-      sl[i].customizeFramework();
-      printf("エッジ%dのfilename=%s, startN=%d\n", i, filename[i], startN[i]);
-      sl[i].setupEC(i);
-      eof[i] = sl[i].getEof();
-      idx += 2;
-    }
-    mdrawerWorld.initGnuplot();                   // gnuplot初期化
-    mdrawerWorld.setAspectRatio(-0.9);            // x軸とy軸の比（負にすると中身が一定）
-
-
-    bool eofAll = false;
-    int cnt = 0;         //論理時刻
-    int drawSkip = 10;
-    int keyframeSkip = 10;
-
-    //ただループでsfront.process()と描画を行っているだけ
-    while(!eofAll){
-      for(int i = 0; i < edgeNumber; i++){
-        sl[i].runEC();
-        eof[i] = sl[i].getEof();
-      }
-
-      //SLAMが終了したかのチェック
-      eofAll = true;
-      for(int i = 0; i < edgeNumber; i++){
-        if(eof[i] == false){
-          eofAll = false;
-        }
-      }
-
-      //クラウドによるループ検出
-      if (cnt > keyframeSkip && cnt%keyframeSkip==0) {       // キーフレームのときだけ行う
-        //最初はエッジ1がエッジ0の軌跡を見つけるだけで
-        //const std::vector<Submap> submaps = ((PointCloudMapLP*)sl[0].getPointCloudMap())->submaps;
-        LoopDetectorSS *lpss = new LoopDetectorSS();
-
-        fcustom->setupLpss(*lpss);
-        lpss->detectLoopOther(sl[0].getPointCloudMap(), sl[1].getPointCloudMap(),cnt);
-        lpss->detectLoopOther(sl[1].getPointCloudMap(), sl[0].getPointCloudMap(),cnt);
-        
-        delete lpss;
-      }
-      //drawSkipごとに描画    
-      if(cnt % drawSkip == 0 && cnt != 0){
-        //よくわからんから２つ限定でやろう
-          mdrawerWorld.drawMapWorld(*sl[0].getPointCloudMap(), *sl[1].getPointCloudMap(), edgeNumber);
-        //mdrawerWorld.drawMapMove(*sl[0].getPointCloudMap(), 5, 5, (double)1/2 * M_PI);
-      }
-      ++cnt;
-    }
-    printf("SlamLauncher finished.\n");
-    while(true) {
-      #ifdef _WIN32
-      Sleep(1000);                            // WindowsではSleep
-      #elif __linux__
-        usleep(1000);                        // Linuxではusleep
-    #endif
-    }    
-    */
   }
 
   return(0);

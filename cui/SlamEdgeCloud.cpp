@@ -2,8 +2,6 @@
 
 using namespace std;                       // C++標準ライブラリの名前空間を使う
 
-
-
 void SlamEdgeCloud::mainProcess(int argc, char *argv[], int idx){
     edgeNumber = atoi(argv[idx]); //エッジ端末の数
 
@@ -31,7 +29,6 @@ void SlamEdgeCloud::mainProcess(int argc, char *argv[], int idx){
       usleep(1000);                        // Linuxではusleep
     }
     return;    
-    
 }
 
 //各slにファイルとstartNとframeworkをセット
@@ -45,21 +42,20 @@ void SlamEdgeCloud::setup(int argc, char *argv[], int idx){
     }
     sl[i].setStartN(startN[i]);
     sl[i].setupEC(i);
-    sl[i].customizeFramework();
-    //printf("この地図のエッジIDは%d\n", sl[i].getPointCloudMap()->GetEdgeId());
-
-    eof[i] = sl[i].getEof();
+    sl[i].customizeFramework();               //基本的にcustmizeHで設定
+    eof[i] = sl[i].getEof();                  //実行終了したかのチェック
     idx += 2;
-
   }
 }
 
 void SlamEdgeCloud::cloudRun(){
-  //ただループでsfront.process()と描画を行っているだけ
+  //ループで各エッジがsfront.process()と描画を行っている
+  sback.setPoseGraph(pgCloud);
+  fcustom->setupLpss(*lpss);
   while(!eofAll){
     for(int i = 0; i < edgeNumber; i++){
       sl[i].runEC();
-      eof[i] = sl[i].getEof();
+      eof[i] = sl[i].getEof();                //実行終了したかのチェック　//COM
     }
 
     //SLAMが終了したかのチェック
@@ -69,72 +65,74 @@ void SlamEdgeCloud::cloudRun(){
         eofAll = false;
       }
     }
-
+    
+    //ここからクラウドとエッジのデータのやりとりが沢山ある
     //クラウドによるループ検出
     if (cnt > keyframeSkip && cnt%keyframeSkip==0) {       // キーフレームのときだけ行う
-    //ここだと同時にinfoに入った時更新されない?
-      std::vector<PoseGraph*> pgs;
       for(int i = 0; i < edgeNumber; i++){
-        pgs.emplace_back(sl[i].getPoseGraph());
-      }
-      //pgCloudに各エッジのノードとアーク情報をコピーしてくる
-      PoseGraph *pgCloud = new PoseGraph();
-      for(int i = 0; i < edgeNumber; i++){
-        std::copy(pgs[i]->nodes.begin(), pgs[i]->nodes.end(), std::back_inserter(pgCloud->nodes));
-        std::copy(pgs[i]->arcs.begin(), pgs[i]->arcs.end(), std::back_inserter(pgCloud->arcs));
-      }
-      //２つ限定の書き方してる
-      firstEdgeNodeSize = pgs[0]->nodes.size();
-
-      for(int i = 0; i < edgeNumber; i++){
-        LoopDetectorSS *lpss = new LoopDetectorSS();
-        fcustom->setupLpss(*lpss);
-        LoopInfo *info = nullptr;
-        //2つ限定の書き方してる
+        std::vector<PoseGraph*> pgs;
+        for(int j = 0; j < edgeNumber; j++){
+          pgs.emplace_back(sl[j].getPoseGraph());             //COM
+        }
+        //pgCloudに各エッジのノードとアーク情報をコピーしてくる
+        pgCloud->nodes.clear();
+        pgCloud->arcs.clear();
+        for(int j = 0; j < edgeNumber; j++){
+          std::copy(pgs[j]->nodes.begin(), pgs[j]->nodes.end(), std::back_inserter(pgCloud->nodes));          
+          std::copy(pgs[j]->arcs.begin(), pgs[j]->arcs.end(), std::back_inserter(pgCloud->arcs));             
+        }
+        //２つ限定の書き方してる
+        firstEdgeNodeSize = pgs[0]->nodes.size(); 
         curEdgeId = i;
         refEdgeId = 1 -i;
-        info = lpss->detectLoopCloud(sl[curEdgeId].getPointCloudMap(), sl[refEdgeId].getPointCloudMap(),cnt);
+        //ここ無駄かもしれないね
+
+        LoopInfo *info = nullptr;
+        //2つ限定の書き方してる
+
+        //一方のエッジ（curEdge)の現在位置を見て、その位置がもう一方のエッジが作成した地図（refmap）の近くならマージ可能かを疑う
+        //その候補地についてICPを行い、refmapにおけるcurEdgeの修正位置を求める
+        //２つのエッジの間でループアークを結ぶのに必要な情報がinfoに格納される
+        info = lpss->detectLoopCloud(sl[curEdgeId].getPointCloudMap(), sl[refEdgeId].getPointCloudMap(),cnt);    //COM
+
+        //正しく検出され、再訪点が求められている時
         if(info != nullptr){
-        //printf("グローバルのポーズグラフはノードが%lu個\n", pgCloud->nodes.size());
+          makeLoopArcCloud(info, pgCloud);                        //クラウドが持つループアークのvectorに登録
+          for(int j = 0; j < loopArcs.size(); j++){
+            PoseArc *arc = loopArcs[j];
 
-          makeLoopArcCloud(info, pgCloud);                        //ループアークのvectorに登録
-          for(int i = 0; i < loopArcs.size(); i++){
-            PoseArc arc = loopArcs[i];
-            //printf("このアークはエッジ%dの%d番からエッジ%dの%d番へ\n", arc.src->edgeId, arc.src->nid, arc.dst->edgeId, arc.dst->nid);
-            pgCloud->addArc(&arc);
+            //これまで作ったループアークをすべてpgCloudにセット
+            pgCloud->addArc(arc);                                                           
           }
-          sback.setPoseGraph(pgCloud);
-          Pose2D newPose = sback.adjustPoses();                      //新しいポーズが得られた
+
+          //2つめの重なりのあたりでバグ
+          //sback.setPoseGraph(pgCloud);                             //もっと上の方でもいいのでは
+          sback.adjustPoses(firstEdgeNodeSize);                      //新しいポーズが得られた
           for(int j = 0; j < edgeNumber; j++){
-            sback.remakeMapsCloud(sl[j].getPointCloudMap(), firstEdgeNodeSize);
+            sback.remakeMapsCloud(sl[j].getPointCloudMap(), firstEdgeNodeSize);                               //COM
           }
-
-          printf("ポーズ調整抜けた\n");
         }
         //謎
-        //ここでバグってるよ
         delete info;
-        delete lpss;
       }      
-      delete pgCloud;
     }
     //drawSkipごとに描画    
     if(cnt % drawSkip == 0 && cnt != 0){
-      //よくわからんから２つ限定でやろう
+      //２つ限定でやっている
         mdrawerWorld.drawMapWorld(*sl[0].getPointCloudMap(), *sl[1].getPointCloudMap(), edgeNumber);
-      //mdrawerWorld.drawMapMove(*sl[0].getPointCloudMap(), 5, 5, (double)1/2 * M_PI);
     }
     ++cnt;
   }
 }
 void SlamEdgeCloud::makeLoopArcCloud(LoopInfo* info, PoseGraph* pg){
-
+  //ここでのpgはpgCloudである
+  //infoには再訪点の位置、共分散、再訪点のノードid・エッジid、前回訪問点のノードid・エッジidが格納されている
   if (info->arcked)                                             // infoのアークはすでに張ってある
     return;
   info->setArcked(true);
-  int srcCloudId = firstEdgeNodeSize * info->refEdgeId + info->refId;
-  int dstCloudId = firstEdgeNodeSize * info->curEdgeId + info->curId;
-  //printf("エッジ%dの%dからエッジ%dの%dへ、実際は%dから%dへ\n",info->refEdgeId, info->refId, info->curEdgeId, info->curId, srcCloudId,dstCloudId);
+  int srcCloudId = firstEdgeNodeSize * info->refEdgeId + info->refId;               //pgCloudに関する通し番号
+  int dstCloudId = firstEdgeNodeSize * info->curEdgeId + info->curId;               //pgCloudに関する通し番号
+  //printf("アーク張る直前: エッジ%dの%dからエッジ%dの%dへ、実際は%dから%dへ\n",info->refEdgeId, info->refId, info->curEdgeId, info->curId, srcCloudId,dstCloudId);
   Pose2D srcPose = pg->nodes[srcCloudId]->pose;                   // 前回訪問点の位置
   Pose2D dstPose(info->pose.tx, info->pose.ty, info->pose.th);    // 再訪点の位置
   Pose2D relPose;
@@ -145,7 +143,8 @@ void SlamEdgeCloud::makeLoopArcCloud(LoopInfo* info, PoseGraph* pg){
   CovarianceCalculator::rotateCovariance(srcPose, info->cov, cov, true);    // 共分散の逆回転
 
   PoseArc *arc = pg->makeArc(srcCloudId, dstCloudId, relPose, cov);        // ループアーク生成
-  //PoseArc arc = *(pg->makeArcCloud(info->refId, srcCloudId, info->curId, dstCloudId, relPose, cov));        // ループアーク生成
-  loopArcs.emplace_back(*arc);
+  //ループアークであることを明示的に
+  arc->loop = true;
+  loopArcs.emplace_back(arc);
 }
 

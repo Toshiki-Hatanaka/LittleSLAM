@@ -196,7 +196,7 @@ void FrameworkCustomizer::customizeG() {
   sfront->setDgCheck(false);                       // センサ融合しない
 }
 
-// センサ融合を追加
+// センサ融合を追加、地図にエッジIDを登録
 void FrameworkCustomizer::customizeH(int id) {
 //  pcmap = &pcmapGT;                                // 格子テーブルで管理する点群地図
   pcmap = &pcmapLP;                                // 部分地図ごとに管理する点群地図。cIとの比較用
@@ -221,8 +221,9 @@ void FrameworkCustomizer::customizeH(int id) {
 }
 
 // センサ融合とループ閉じ込みを追加
-void FrameworkCustomizer::customizeI() {
+void FrameworkCustomizer::customizeI(int id) {
   pcmap = &pcmapLP;                                // 部分地図ごとに管理する点群地図
+  pcmap->setEdgeId(id);
   RefScanMaker *rsm = &rsmLM;                      // 局所地図を参照スキャンとする
   DataAssociator *dass = &dassGT;                  // 格子テーブルによるデータ対応づけ
   CostFunction *cfunc = &cfuncPD;                  // 垂直距離をコスト関数とする

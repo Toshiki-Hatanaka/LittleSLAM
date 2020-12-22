@@ -39,7 +39,7 @@ public:
 
 ///////
 
-  void doP2o( PoseGraph &graph, std::vector<Pose2D> &newPoses, int N);
+  void doP2o( PoseGraph &graph, std::vector<Pose2D> &newPoses, int firstEdgeNodeSize, int N);
 
 };
 

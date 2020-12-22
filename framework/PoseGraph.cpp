@@ -58,29 +58,11 @@ void PoseGraph::addArc(PoseArc *arc) {
 PoseArc *PoseGraph::makeArc(int srcNid, int dstNid, const Pose2D &relPose, const Eigen::Matrix3d &cov) {
 //  Eigen::Matrix3d inf = cov.inverse();         // infはcovの逆行列
   Eigen::Matrix3d inf = MyUtil::svdInverse(cov);            // infはcovの逆行列
-
   PoseNode *src = nodes[srcNid];                // 始点ノード
   PoseNode *dst = nodes[dstNid];                // 終点ノード
 
   PoseArc *arc = allocArc();                    // アークの生成
   arc->setup(src, dst, relPose, inf);      // relPoseは計測による相対位置
-
-  return(arc);
-}
-
-PoseArc *PoseGraph::makeArcCloud(int srcNid, int srcCloudId, int dstNid, int dstCloudId, const Pose2D &relPose, const Eigen::Matrix3d &cov) {
-//  Eigen::Matrix3d inf = cov.inverse();         // infはcovの逆行列
-  Eigen::Matrix3d inf = MyUtil::svdInverse(cov);            // infはcovの逆行列
-
-  PoseNode src = *(nodes[srcCloudId]);                // 始点ノード
-  PoseNode dst = *(nodes[dstCloudId]);                // 終点ノード
-  //printf("最初はエッジ%dの%d番からエッジ%dの%d番まで\n", src.edgeId, src.nid, dst.edgeId, dst.nid);
-  src.nid = srcNid;
-  dst.nid = dstNid;
-  //printf("その後はエッジ%dの%d番からエッジ%dの%d番まで\n", src.edgeId, src.nid, dst.edgeId, dst.nid);
-  PoseArc *arc = allocArc();                    // アークの生成
-  arc->setup(&src, &dst, relPose, inf);      // relPoseは計測による相対位置
-
   return(arc);
 }
 

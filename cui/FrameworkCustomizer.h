@@ -95,7 +95,7 @@ public:
   void customizeF();
   void customizeG();
   void customizeH(int id = 0);
-  void customizeI();
+  void customizeI(int id = 0);
 };
 
 #endif

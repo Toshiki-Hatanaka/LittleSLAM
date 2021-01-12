@@ -69,7 +69,7 @@ void SlamFrontEnd::process(Scan2D &scan, int edgeId) {
   //printf("pcmap.size=%lu\n", pcmap->globalMap.size());   // 確認用
 
   countLoopArcs();            // 確認用
-
+  //printf("ロボット%dのポーズグラフのノード数は%d\n", edgeId, pg->nodes.size());
   ++cnt;
 }
 

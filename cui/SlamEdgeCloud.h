@@ -7,6 +7,8 @@
 #include <windows.h>
 #elif __linux__
 #include <unistd.h>
+#include<iostream>
+#include<fstream>
 #endif
 
 
@@ -32,6 +34,17 @@ class SlamEdgeCloud{
         int curEdgeId;
         int refEdgeId;
         int firstEdgeNodeSize;
+
+        boost::timer tim;
+        double totalTime=0;
+        double totalTimePrev=0;
+        double totalTimeDraw=0;
+        double totalTimeScanMatch[2] = {0, 0};
+        double totalTimeMerge = 0;
+
+        std::vector<Pose2D> truePoses[2];
+        std::vector<double> disdiff[2];
+        std::vector<double> disdiffaverage[2];
     public:
         SlamEdgeCloud() :  drawSkip(10), keyframeSkip(10), fcustom(new FrameworkCustomizer()), pgCloud(new PoseGraph()), lpss(new LoopDetectorSS()){
         }

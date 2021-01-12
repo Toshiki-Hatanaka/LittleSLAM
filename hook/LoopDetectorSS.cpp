@@ -172,10 +172,10 @@ void LoopDetectorSS::makeLoopArc(LoopInfo &info) {
 
   PoseArc *arc = pg->makeArc(info.refId, info.curId, relPose, cov);        // ループアーク生成
   pg->addArc(arc);                                                         // ループアーク登録
-  printf("情報行列は\n");
-  printf("%f, %f, %f\n", arc->inf(0,0), arc->inf(0,1), arc->inf(0,2));
-  printf("%f, %f, %f\n", arc->inf(1,0), arc->inf(1,1), arc->inf(1,2));
-  printf("%f, %f, %f\n", arc->inf(2,0), arc->inf(2,1), arc->inf(2,2));
+  //printf("情報行列は\n");
+  //printf("%f, %f, %f\n", arc->inf(0,0), arc->inf(0,1), arc->inf(0,2));
+  //printf("%f, %f, %f\n", arc->inf(1,0), arc->inf(1,1), arc->inf(1,2));
+  //printf("%f, %f, %f\n", arc->inf(2,0), arc->inf(2,1), arc->inf(2,2));
   // 確認用
   /*
   printf("makeLoopArc: pose arc added\n");

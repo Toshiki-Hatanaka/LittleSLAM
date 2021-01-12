@@ -41,7 +41,7 @@ void SlamBackEnd::remakeMaps() {
     PoseNode *pnode = pnodes[i];              // ノードはロボット位置と1:1対応
     pnode->setPose(npose);                    // 各ノードの位置を更新
   }
-  printf("newPoses.size=%lu, nodes.size=%lu\n", newPoses.size(), pnodes.size());
+  //printf("newPoses.size=%lu, nodes.size=%lu\n", newPoses.size(), pnodes.size());
 
   // PointCloudMapの修正
 
@@ -57,7 +57,7 @@ void SlamBackEnd::remakeMapsCloud(PointCloudMap *pcmap, int firstEdgeNodesSize){
   size_t startIndex = firstEdgeNodesSize * edgeId;
   size_t endIndex = firstEdgeNodesSize * edgeId + pcmap->poses.size();
 
-  printf("pgCloudのノード数は%d, エッジIDは%d, startIndexは%zu, endIndexは%zu\n", pg->nodes.size(), edgeId, startIndex, endIndex);
+  //printf("pgCloudのノード数は%d, エッジIDは%d, startIndexは%zu, endIndexは%zu\n", pg->nodes.size(), edgeId, startIndex, endIndex);
   std::vector<Pose2D> newPosesEach;            // ポーズ調整後の姿勢
 
   for (size_t i = startIndex; i < endIndex; i++) {

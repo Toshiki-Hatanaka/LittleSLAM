@@ -19,11 +19,12 @@ void SlamEdgeCloud::mainProcess(int argc, char *argv[], int idx){
 
     mdrawerWorld.initGnuplot();                   // gnuplot初期化
     mdrawerWorld.setAspectRatio(-0.9);            // x軸とy軸の比（負にすると中身が一定）
-
     while(!eofAll){
       cloudRun();
     }
 
+    printf("総実行時間は%lf, 総描画時間は%lf, 総マージ時間は%lf\n", totalTime, totalTimeDraw, totalTimeMerge);
+    printf("エッジ0のSLAM実行時間は%lf, エッジ1のSLAM実行時間は%lf\n", totalTimeScanMatch[0], totalTimeScanMatch[1]);
     printf("SlamLauncher finished.\n");
     while(true) {
       usleep(1000);                        // Linuxではusleep
@@ -33,6 +34,50 @@ void SlamEdgeCloud::mainProcess(int argc, char *argv[], int idx){
 
 //各slにファイルとstartNとframeworkをセット
 void SlamEdgeCloud::setup(int argc, char *argv[], int idx){
+
+
+  // 正解データ読み込み
+  for(int i = 0; i < edgeNumber; i++){
+    const char *ansFileName;
+    if(i == 0){
+      ansFileName = "truePose0.txt";
+    }
+    else{
+      ansFileName = "truePose1.txt";
+    }
+    std::ifstream ifs(ansFileName);
+
+    double tx, ty, th;
+    while(!ifs.eof()){
+      ifs >> tx >> ty >> th;
+      std::cout << tx << " " << ty << " " << th << std::endl;
+      Pose2D pose;
+      pose.tx = tx, pose.ty = ty, pose.th = th;
+      truePoses[i].emplace_back(pose);
+    }
+  }
+  
+/*
+  for(int i = 0; i < edgeNumber; i++){
+    const char *outFileName;
+    if(i == 0){
+      outFileName = "testoutput0.txt";
+    }
+    else{
+      outFileName = "testoutput1.txt";
+    }
+    std::ofstream ofs(outFileName);
+    int countp = 0;
+    for(int j = 0; j < truePoses[i].size(); j++){
+      Pose2D pose = truePoses[i][j];
+      ofs << pose.tx << " "<< pose.ty << " "<< pose.th << endl;
+      countp++;
+    }
+    cout << countp << endl;
+    ofs.close();
+  }
+
+*/
   for(int i = 0; i < edgeNumber; i++){
     filename[i] = argv[idx];
     startN[i] = atoi(argv[idx + 1]);
@@ -53,9 +98,11 @@ void SlamEdgeCloud::cloudRun(){
   sback.setPoseGraph(pgCloud);
   fcustom->setupLpss(*lpss);
   while(!eofAll){
+    double t1[2];
     for(int i = 0; i < edgeNumber; i++){
       sl[i].runEC();
       eof[i] = sl[i].getEof();                //実行終了したかのチェック　//COM
+      t1[i] = 1000*tim.elapsed();
     }
 
     //SLAMが終了したかのチェック
@@ -65,10 +112,10 @@ void SlamEdgeCloud::cloudRun(){
         eofAll = false;
       }
     }
-    
-    //ここからクラウドとエッジのデータのやりとりが沢山ある
     //クラウドによるループ検出
-    if (cnt > keyframeSkip && cnt%keyframeSkip==0) {       // キーフレームのときだけ行う
+    //if (cnt < 0){                                            //呼ばない時
+    if (cnt > keyframeSkip){                               //毎フレーム
+    //if (cnt > keyframeSkip && cnt%keyframeSkip==0) {       // キーフレームのときだけ行う
       for(int i = 0; i < edgeNumber; i++){
         std::vector<PoseGraph*> pgs;
         for(int j = 0; j < edgeNumber; j++){
@@ -116,13 +163,77 @@ void SlamEdgeCloud::cloudRun(){
         delete info;
       }      
     }
+
+    double t2 = 1000*tim.elapsed();
     //drawSkipごとに描画    
     if(cnt % drawSkip == 0 && cnt != 0){
       //２つ限定でやっている
-        mdrawerWorld.drawMapWorld(*sl[0].getPointCloudMap(), *sl[1].getPointCloudMap(), edgeNumber);
+      mdrawerWorld.drawMapWorld(*sl[0].getPointCloudMap(), *sl[1].getPointCloudMap(), edgeNumber);
     }
+    double t3 = 1000*tim.elapsed();
+
+    //二乗誤差測定
+    
+    for(int i = 0; i < edgeNumber; i++){
+      PoseGraph *pg = sl[i].getPoseGraph();
+      vector<PoseNode*> &nodes = pg->nodes;
+      double d = 0;
+      for(int j = 0; j < nodes.size(); j++){
+        PoseNode *node = nodes[j];
+        Pose2D pose = node->pose; 
+        Pose2D truePose = truePoses[i][j];
+
+        d += sqrt( pow((truePose.tx - pose.tx), 2) + pow((truePose.ty - pose.ty), 2) );
+      }
+      disdiff[i].emplace_back(d);
+      disdiffaverage[i].emplace_back(d/nodes.size());
+    }
+    
     ++cnt;
+
+    totalTime = t3;
+    totalTimeDraw += t3 - t2;
+    totalTimeMerge += t2 - t1[1];
+    totalTimeScanMatch[1] += t1[1] - t1[0];
+    totalTimeScanMatch[0] += t1[0] - totalTimePrev;
+    
+    totalTimePrev = totalTime;
   }
+
+  for(int i = 0; i < edgeNumber; i++){
+    const char *outFileName;
+    const char *outFileNameaverage;
+    if(i == 0){
+      outFileName = "disdiff0.txt";
+      outFileNameaverage = "disdiffaverage0.txt";
+    }
+    else{
+      outFileName = "disdiff1.txt";
+      outFileNameaverage = "disdiffaverage1.txt";
+    }
+    std::ofstream ofs(outFileName);
+    std::ofstream ofsaverage(outFileNameaverage);
+    for(int j = 0; j < disdiff[i].size(); j++){
+      ofs << j << " " << disdiff[i][j] << endl;
+      ofsaverage << j << " " << disdiffaverage[i][j] << endl;
+    }
+    
+   /*
+    PoseGraph *pgaa = sl[i].getPoseGraph();
+    vector<PoseNode*> &nodes = pgaa->nodes;
+    printf("ロボット番号は%d, ノード数は%d\n", i, nodes.size());
+    for(int j = 0; j < nodes.size(); j++){
+      PoseNode *node = nodes[j];
+      Pose2D pose = node->pose; 
+      ofs << pose.tx << " "<< pose.ty << " "<< pose.th << endl;
+    }
+    */
+    ofs.close();
+    ofsaverage.close();
+  }
+  double t4 = 1000*tim.elapsed();
+  printf("書き込み時間は%lf", t4 - totalTime);
+
 }
 void SlamEdgeCloud::makeLoopArcCloud(LoopInfo* info, PoseGraph* pg){
   //ここでのpgはpgCloudである

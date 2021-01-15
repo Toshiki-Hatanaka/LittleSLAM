@@ -39,8 +39,10 @@ bool ScanMatcher2D::matchScan(Scan2D &curScan, int edgeId) {
     }
     else if(edgeId == 1){
       //initPose.tx = -24.395601,initPose.ty = 23.630501, initPose.th = 0.516210 * 180.0 / M_PI;  　　//オドメトリの3501だぞ
-      //initPose.tx =-12.329435, initPose.ty = 16.874370, initPose.th = -4.603961;                  //custmizeHの結果
-      initPose.tx = -12.687278, initPose.ty = 17.095419, initPose.th = -4.053322;               //custmizeIの結果
+      //initPose.tx =-12.329435, initPose.ty = 16.874370, initPose.th = -4.603961;                  //custmizeHの3501
+      //initPose.tx = -12.687278, initPose.ty = 17.095419, initPose.th = -4.053322;               //custmizeIのの3501
+      //initPose.tx = -0.339027, initPose.ty = 4.71298, initPose.th = -94.4014;               //custmizeIのの4000  
+      initPose.tx = 0.0244557, initPose.ty = 16.3662, initPose.th = -2.21078;               //custmizeIのの3800 
     }
 
     growMap(curScan, initPose);
@@ -150,6 +152,8 @@ void ScanMatcher2D::growMap(const Scan2D &scan, const Pose2D &pose) {
     mlp.setType(lp.type);
     scanG.emplace_back(mlp);                             // mlpはvector内にコピーされる
   }
+  //毎フレームどれくらいのデータを送ってるのか
+  lpsNum.emplace_back(scanG.size());
 
   // 点群地図pcmapに登録
   pcmap->addPose(pose);

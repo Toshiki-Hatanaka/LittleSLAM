@@ -64,9 +64,13 @@ void SlamLauncher::run() {
   }
   sreader.closeScanFile();
 
+  const char *outFileName;
+  outFileName = "posesingle.txt";
+  std::ofstream ofs(outFileName);
   for(int i = 0; i < pcmap->poses.size(); i++){
     Pose2D &pose = pcmap->poses[i];
-    printf("スキャン番号: %d, ロボットのxは%f, yは%f, thetaは%f\n", i, pose.tx, pose.ty, pose.th);
+    ofs << i << " " << pose.tx << " " << pose.ty << " "<< pose.th << endl;
+    //printf("スキャン番号: %d, ロボットのxは%f, yは%f, thetaは%f\n", i, pose.tx, pose.ty, pose.th);
   }
   printf("Elapsed time: mapping=%g, drawing=%g, reading=%g\n", (totalTime-totalTimeDraw-totalTimeRead), totalTimeDraw, totalTimeRead);
   printf("SlamLauncher finished.\n");
@@ -85,38 +89,43 @@ void SlamLauncher::run() {
 //SlamLauncherにエッジIDの登録、地図描画の初期設定、最初のスキャン読み込み、実行時間初期化
 void SlamLauncher::setupEC(int edgeId){
   this->edgeId = edgeId;
-  //mdrawer.initGnuplot();                   // gnuplot初期化
-  //mdrawer.setAspectRatio(-0.9);            // x軸とy軸の比（負にすると中身が一定）
-  
   if (startN > 0){
     skipData(startN);                      // startNまでデータを読み飛ばす
   }
   //cntが0の時だけ、初期値を保存しておく
   eof = sreader.loadScan(cnt, scan);  // ファイルからスキャンを1個読み込む
-  totalTime=0, totalTimeDraw=0, totalTimeRead=0;
 }
 
 // SLAMによる地図構築、地図描画、次のスキャン読み込み、各処理時間の計測
 void SlamLauncher::runEC(){
   if(!eof){
+    double t1 = tim.elapsed();
     sfront.process(scan, edgeId);                // SLAMによる地図構築
-
-    double t1 = 1000*tim.elapsed();
-
-    if (cnt%drawSkip == 0) {               // drawSkipおきに結果を描画
-      //mdrawer.drawMapGp(*pcmap);
-    }
-    double t2 = 1000*tim.elapsed();
-
+    double t2 = tim.elapsed();
     ++cnt;                                 // 論理時刻更新
     eof = sreader.loadScan(cnt, scan);     // 次のスキャンを読み込む
-
-    double t3 = 1000*tim.elapsed();
-    totalTime = t3;                        // 全体処理時間
-    totalTimeDraw += (t2-t1);              // 描画時間の合計
-    totalTimeRead += (t3-t2);              // ロード時間の合計
+    totalTimeSLAM += t2 - t1;
   }
-
+  if(eof){
+    if(written){
+      return;
+    }
+    lpsNum = sfront.getLpsNum();
+    const char *outFileName;
+    if(edgeId == 0){
+      outFileName = "lpsNum0.txt";
+    }
+    else{
+      outFileName = "lpsNum1.txt";
+    }
+    std::ofstream ofs(outFileName);
+    for(int i = 0; i < lpsNum.size(); i++){
+      ofs << i << " " << lpsNum[i] << endl;
+    }
+    ofs.close();
+    written = true;
+    //printf("エッジ%dのSLAM実行時間は%lf\n", edgeId, totalTimeSLAM);
+  }
   return;
 }
 

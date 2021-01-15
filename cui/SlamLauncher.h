@@ -47,8 +47,11 @@ private:
   boost::timer tim;
   double totalTime=0, totalTimeDraw=0, totalTimeRead=0;
 
+  double totalTimeSLAM = 0;
   int edgeId = 0;
-  
+  std::vector<int> lpsNum;
+  std::vector<Pose2D> Posessingle;
+  bool written = false;
 
   Pose2D ipose;                    // オドメトリ地図構築の補助データ。初期位置の角度を0にする
   Pose2D lidarOffset;              // レーザスキャナとロボットの相対位置

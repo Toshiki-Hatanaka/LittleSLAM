@@ -38,6 +38,7 @@ private:
   LoopDetector *lpd;                     // ループ検出器
   SlamBackEnd sback;                     // SLAMバックエンド
 
+  std::vector<int> lpsNum;
 public:
   SlamFrontEnd()  : cnt(0), keyframeSkip(10), smat(nullptr), lpd(nullptr) {
     pg = new PoseGraph();
@@ -73,6 +74,11 @@ public:
 
   PoseGraph *getPoseGraph() {
     return(pg);
+  }
+
+  std::vector<int> getLpsNum(){
+    lpsNum = smat->GetLpsNum();
+    return lpsNum;
   }
 
   int getCnt() {

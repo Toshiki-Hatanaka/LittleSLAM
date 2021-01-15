@@ -51,6 +51,7 @@ private:
 
   std::vector<PoseCov> poseCovs;          // デバッグ用
 
+  std::vector<int> lpsNum;
 public:
   ScanMatcher2D() : cnt(-1), scthre(1.0), nthre(50), dgcheck(false), atd(0), pcmap(nullptr), spres(nullptr), spana(nullptr), estim(nullptr), rsm(nullptr), pfu(nullptr) {
   }
@@ -86,6 +87,10 @@ public:
     pcmap = m;
     if (rsm != nullptr)
       rsm->setPointCloudMap(pcmap);
+  }
+
+  std::vector<int> GetLpsNum(){
+    return lpsNum;
   }
 
 ///////

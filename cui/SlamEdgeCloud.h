@@ -45,6 +45,7 @@ class SlamEdgeCloud{
         std::vector<Pose2D> truePoses[2];
         std::vector<double> disdiff[2];
         std::vector<double> disdiffaverage[2];
+        std::map<int, size_t> feedbackPoints[2];
     public:
         SlamEdgeCloud() :  drawSkip(10), keyframeSkip(10), fcustom(new FrameworkCustomizer()), pgCloud(new PoseGraph()), lpss(new LoopDetectorSS()){
         }
